@@ -1,0 +1,597 @@
+
+
+
+
+
+
+
+% paper title
+\title{Cross Entropy Analytic Policy Gradients: A Reinforcement Learning Algorithm for Continuous Control In Differentiable Physics Simulations}
+
+% You will get a Paper-ID when submitting a pdf file to the conference system
+%\author{Author Names Omitted for Anonymous Review. Paper-ID [add your ID here]}
+
+%\author{\authorblockN{Michael Shell}
+%\authorblockA{School of Electrical and\\Computer Engineering\\
+%Georgia Institute of Technology\\
+%Atlanta, Georgia 30332--0250\\
+%Email: mshell@ece.gatech.edu}
+%\and
+%\authorblockN{Homer Simpson}
+%\authorblockA{Twentieth Century Fox\\
+%Springfield, USA\\
+%Email: homer@thesimpsons.com}
+%\and
+%\authorblockN{James Kirk\\ and Montgomery Scott}
+%\authorblockA{Starfleet Academy\\
+%San Francisco, California 96678-2391\\
+%Telephone: (800) 555--1212\\
+%Fax: (888) 555--1212}}
+
+
+% avoiding spaces at the end of the author lines is not a problem with
+% conference papers because we don't use \thanks or \IEEEmembership
+
+
+% for over three affiliations, or if they all won't fit within the width
+% of the page, use this alternative format:
+% 
+%\author{\authorblockN{Michael Shell\authorrefmark{1},
+%Homer Simpson\authorrefmark{2},
+%James Kirk\authorrefmark{3}, 
+%Montgomery Scott\authorrefmark{3} and
+%Eldon Tyrell\authorrefmark{4}}
+%\authorblockA{\authorrefmark{1}School of Electrical and Computer Engineering\\
+%Georgia Institute of Technology,
+%Atlanta, Georgia 30332--0250\\ Email: mshell@ece.gatech.edu}
+%\authorblockA{\authorrefmark{2}Twentieth Century Fox, Springfield, USA\\
+%Email: homer@thesimpsons.com}
+%\authorblockA{\authorrefmark{3}Starfleet Academy, San Francisco, California 96678-2391\\
+%Telephone: (800) 555--1212, Fax: (888) 555--1212}
+%\authorblockA{\authorrefmark{4}Tyrell Inc., 123 Replicant Street, Los Angeles, California 90210--4321}}
+
+
+\begin{abstract}
+New advances in simulation have resulted in physics engines with fully differentiable dynamics. This opens up new possibilities for reinforcement learning, namely the possibility of using analytic gradients for policy search. However these gradients have proven to be very challenging to use in practice, and the performance of algorithms based on these gradients lag behind algorithms which do not make use of these algorithms at all. In this paper we introduce an algorithm we call Cross Entropy Analytic Policy Gradients, an algorithm which improves on the performance of Analytic Policy Gradients, and which outperforms state of the art model free reinforcement learning for certain systems which model free algorithms historically struggle on. This work represents a step towards reinforcement learning algorithms that can productively use analytic gradients for policy search. 
+
+\end{abstract}
+
+\IEEEpeerreviewmaketitle
+
+\section{Introduction}
+
+Computer simulation has become an indispensable tool for researchers and engineers of robotic systems for design, control, and verification. Some recent advances in robotic control, especially the field of model free reinforcement learning, are completely dependent on accurate and fast simulations of robotic systems. This is because RL is extremely sample inefficient. This stems partially from the fact that we cannot directly take the gradients of the reward function with respect to controller parameters. This fact is due to the fact in the commonly used simulators for reinforcement learning, like MuJoco \cite{todorov2012mujoco} or Bullet \cite{coumans2020}, are not differentiable, we are unable to take gradients through the simulators themselves. This is of course also true for physical robotic systems, and thus reinforcement learning must thus rely on various approximations of the true gradients, like finite differences or REINFORCE \cite{williams1992simple}
+
+However in recent years, fully differentiable physics simulators have started to emerge \cite{hu2020difftaichi} \cite{heiden2021neuralsim} \cite{brax2021github}. These simulators all offer analytic gradients through the simulator itself, using automatic differentiation. These simulators have a number of applications and advantages over traditional simulators. For example, it is possible to use data from a physical system to modify simulation to better match, in what can be termed real2sim transfer. Furthermore the nature of these simulators allow them to be run on hardware accelerators, for example GPU or TPUs. And of course they also provide analytic gradients. That is to say, we can define a reward function, which takes as input the simulator state, and which outputs a scalar value which is to be maximized. We can then find the analytic gradient of this reward function with respect to policy parameters.
+
+
+Let's be clear, in the context reinforcement learning, the goal is to train an agent, acting in an environment, to maximize some reward function. The environment is a discrete time dynamical system described by state $s_{t} \in \mathbb{R}^{n}$ and the current action $a_{t} \in \mathbb{R}^{b}$. an evolution function $f: \mathbb{R}^{n} \times \mathbb{R}^{b} \rightarrow \mathbb{R}^{n}$ takes as input the current state and action, and outputs the state at time t+1:
+
+
+
+\begin{equation}
+s_{t+1}= f(s_{t},a_{t})
+\end{equation} 
+
+The controller is the function we are learning $g: \mathbb{R}^{n} \times \mathbb{R}^{\norm{\theta}} \rightarrow \mathbb{R}^{m}$ such that:
+
+\begin{equation}
+a_{t} = g(s_{t}, \theta)
+\end{equation} 
+
+The goal is to maximize a reward function $r : \mathbb{R}^{n} \times \mathbb{R}^{m} \times \mathbb{R}^{n} \rightarrow \mathbb{R}$. We consider the finite time undiscounted reward case. The objective function then is:
+
+\begin{equation} 
+R(\theta) =  \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) 
+\end{equation}
+
+% \begin{equation} \argmax_{\theta} \mathop{\mathbb{E}}_{\eta}\left[ \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) \right] \end{equation}
+
+% Where $\nu$ is a parameter representing the randomness of the environment or controller. It may come from a randomized initial condition, from sensor noise, or from a stochastic policy. 
+
+One simple method to do this is simple gradient descent, that is we do a simple iterative method updated by taking the gradient of R with respect to the policy parameters:
+
+\begin{equation}
+    \label{eq:vapg}
+    \theta^{+} = \theta + \alpha \nabla_\theta R(\theta)
+\end{equation}
+
+Typically, gradients for f, the environment has been unavailable. This makes it impossible to compute the gradient $\nabla_{\theta}R(\theta)$ directly. There are several ways around this, one can use zeroth order methods like Evolutionary Strategies (ES) \cite{salimans2017evolution}, or Augmented Random Search (ARS) \cite{Mania2018} which don't require any gradients at all. If you have the gradients for g, for example in the case of a neural network controller, then one can use policy gradient methods. The classic example of this is REINFORCE \cite{williams1992simple}, and all of it's modern incarnations, like Proximal Policy Optimization. 
+
+
+
+% Existing examples are all limited to small systems, and tend to be fragile, dependent on hyper parameters, and prone to local minima. (need to cite all examples of this ! And also I'm not sure that
+% s true).
+
+
+These new differentiable simulators offer us analytic gradients through f, thus we can analytically use the update rule from \ref{eq:vapg}. We will refer to any technique that uses this update rule directly an Analytic Policy Gradient Method.
+
+This may seem to be great news, and that we can finally use fast, gradient based methods for controller design. However, in practice these gradients have proven extremely challenging to use. Part of the problem is inherent to back propagation through time (BPTT), which is necessary to compute the gradient of the reward function. Long chains of BPTT have long been known to cause exploding or vanishing gradients, leading to difficulty in learning \cite{279181}. Recently Metz et. al. \citet{metz2021gradients} offer some exposition on the challenges of using the analytic gradients offered by these new rigid body simulators. That work highlights that they have found a common chaos based failure mode, which we will elaborate on later.
+
+
+Yet another difficulty are severe local maxima. Local maxima are a common problem in all of deep learning, but it is apparent that using APG for reinforcement learning with rigid body systems is especially prone to falling into these extrema. The authors of Tiny Differentiable Simulator \cite{heiden2021neuralsim} agree, they used an optimization technique called Parallel Basin Hopping to circumvent this in the context of parameter identification.  
+
+In this paper we propose one solution to the above difficulties. We propose an algorithm called Cross Entropy Analytic Policy Gradients, which combines APG with a zeroth order cross entropy based optimization method. We find that our method does significantly better than existing APG methods on a variety of (!!very specific pronlem). In fact we also outperform existing Model Free RL in these settings. 
+
+\todo{I should go into more detail about the acrobot/pendulum, how normal RL struggles with it, how we are able to use it, talk about the role analytic gradients have to playz}
+
+
+% Back in 1994 it was known that learning long term dependencies using neural networks is a difficult problem \cite{279181}. This is because Back Propogation Through Time (BPTT) causes exploding or vanishing gradients. One way to combat this is to introduct truncation. Another is to use a GRU or LSTM as the policy, which helps to control these gradients. 
+
+% !! yeah definitley need some work here, the outline with everything else will help, need to make sure my thoughts are in order and make sense with what I do later. 
+
+% % !! S
+% It is known that existing model free deep RL struggles with the acrobot swing up and balance problem \cite{Gillen2020CombiningDR}. This is one area where our algorithm outperforms the existing deep RL algorithms. Need to flesh this out for sure. 
+
+
+\section{Background And Related Work}
+
+
+% Could definitely combine background and related work
+
+\subsection{Deep Reinforcement Learning}
+
+Deep Reinforcement Learning has seen a lot of attention and impressive results over the last decade or so, particularly in the context of continuous control for robotic systems. \cite{heess_emergence_2017} \cite{openai_learning_2018} \cite{lee_robust_2019} \cite{siekmann2021blind}. These problems are all high dimensional, nonlinear, underactuated, and they all involve complex contact sequences with the environments, which makes them very challenging for more traditional control design. 
+
+DRL is usually divided into model based and model free control. Model based reinforcement learning, a classic example is PILCO \cite{deisenroth2011pilco}, uses predictions from a learned model of the environment to plan a trajectory. These approaches are typically much more sample efficient than model free RL, however model free RL often performs better in practice and does not require sometimes expensive re-planning at runtime.
+
+Model free RL on the other hand learns a policy directly to maximize a reward function. This implies solving a more difficult optimization problem, but often works better in practice (citation needed). Examples of model free algorithms include  Soft Actor Critic (SAC), Proximal Policy Optimization (PPO), and Twin Delayed Deep Deterministic policy gradient (TD3) \cite{haarnoja2018soft} \cite{schulman2017proximal} \cite{fujimoto2018addressing}.
+
+Our algorithm can be considered an on policy, model free reinforcement learning algorithm. It inherits many of their advantages and disadvantages of these algorithms. For example we can get good performance even on difficult, high dimensional tasks (\todo{can't really make this claim unless I solve a high dimensional task}). However our method is also relatively sample inefficient, and will require sim2real transfer to be applicable to physical systems (!! should maybe mention unique advantages of diff sims in this regard). 
+
+
+% Traditional model-based control techniques are still very effective---arguably, Boston Dynamics still represents the state-of-the-art for legged locomotion in robotics, for example. However, these approaches require hundreds of expert person hours to develop each new controller. DRL attempts to automate at least some aspects of this challenging controller development process. There are already examples of learned policies outperforming ones hand-designed by experts~\cite{hwangbo_learning_2019}, and with the ever-continued growth and availability of computational power, there is good reason to believe these le
+
+\subsection{Policy Search for Differentiable Physics}
+
+Many of the papers which introduce a differentiable simulator also include a basic example using analytic gradients for policy design as a demonstration. Brax \cite{brax2021github} and the unnamed simulator developed by Degrave et. al. \cite{10.3389/fnbot.2019.00006} Both implement a basic version of APG. Brax's APG is used to command a fully actuated double pendulum to reach random targets, but they acknowledge that their APG is not able to solve most of the other problems in their benchmarking suite. Degrave Et. Al. manage to develop a walking gait for a quadruped, though it required a fairly significant amount of hand tweaking.
+
+In \cite{qiao2021efficient} They introduce a simulator and suggest something called "policy enhancement" whereby they augment a model based RL algorithm with the analytic gradients to control a fully actuated double pendulum.
+
+in \cite{pmlr-v139-mora21a} the authors present policy optimization via differentiable simulation (. They don't directly use the analytic policy gradient, and instead develop an indirect second order method. They also demonstrate their system on under-actuated systems like the inverted pendulum, the difference is that they are balancing at the stable equilibrium. This is a deceptively difficult problem, however we show that our method works for the swing-up case, which we argue is harder is harder. 
+
+\subsection{Metahueristics}
+\todo{What do i call this section?}
+
+
+We were very inspired by basin hopping \cite{doi:10.1021/jp970984n} and the extension of parallel basin hopping \cite{doi:10.2514/6.2018-1452}. Tiny Differentiable Simulator \cite{heiden2021neuralsim} uses this method for parameter estimation in their own work. Our work differs obviously in the application, we are doing policy search.  
+
+There are also several methods that combine a zeroth order optimizer with a local gradient based optimizer for robot learning \cite{pourchot2019cemrl} \cite{bharadhwaj2020modelpredictive} \cite{huang2021cemgd} \cite{pourchot2019cemrl}. However none of them do direct policy optimization, and none of them are using analytic gradients. 
+
+%\cite{huang2021cemgd} CEM-GD
+%     On the face of it, very similar, combining CEM with gradient descent, however they are in the context of trajectory planning, AKA model based RL. Ther
+% \cite{bharadhwaj2020modelpredictive} (MPC ... not sure difference between this and CEM-GD)
+
+% What about those that have tried analytic gradeints?
+
+
+
+% How does our work fit in? It is similar to model based reinforcement learning (E.G. PILCO \cite{deisenroth2011pilco}) , however we are 
+
+% What about model free?
+
+% In my opinion our algorithms is closer to a model free algorithm, it stands to inherent any advantages of those methods, and can be used to augment them.
+
+% The objective of model free reinforcement learning is to learn a policy directly in order to maximize some reward.. 
+
+
+\begin{figure}[!htb]
+ 
+    \includegraphics[width=.75\linewidth]{paper-template-latex/figs/rss_system_diagram.png}
+    \caption{System Diagram \todo{Probably Don't Need this}}
+  
+\end{figure}
+
+\subsection{Back Propagation Through Time}
+
+In order to propagate gradients through an iterated system, we must use a technique called back propagation through time. It's a hard problem, as explained here \cite{279181}, and here \cite{metz2021gradients}. But there is no alternative, this is fundamental to the problem structure at hand. The issue is that our system is recurrent, the state at time t depends not just on the state action taken at time t-1, but on every action taken starting from the initial state. This means that in effect the chain of computations that results in a robots state becomes extremely long, which is the cause for much of the instability that we see. 
+
+\begin{equation}
+\frac{dR}{d\theta} = \frac{1}{T}\sum_{t=0}^{T}
+\left[\frac{dr_{t}}{d\theta}\sum_{k=1}^{t} \frac{dr_{t}}{ds_{t}}\left( \prod_{i=k}^{t}\frac{ds_{i}}{ds_{i-1}}\right)\frac{ds_{k}}{d_{\theta}}\right]
+\end{equation}
+
+\todo{if I want to keep this equation I need to explain it ... }
+
+What can be done about this? We will outline two techniques. The first is called truncated propagation through time. This in effect resets the gradient calculation every N steps. This is effective at stopping the gradient from exploding, and has been used effectively in the past at training RNNS. However we lose much of the long term dependence information, leading to short sighted policies. Furthermore in practice we have found that algorithms that depend on this parameter are very sensitive to it. 
+
+We can also, either instead of or in addition to TBPTT, use specialized recurrent networks. Namely a GRU \cite{?} or LSTM. These networks were specifically designed with gates that allow for selectively "forgetting" information that flows through them, allowing for longer sequences to be learned from. Although in our case, we cannot replace our entire system with a GRU, only the controller, we have found in practice that using a GRU controller helped immensely in training analytic gradient based algorithms, so much so that we did not need to use truncated back propagation. 
+
+\section{Problem Formulation}
+
+\todo{I think this section needs a lot of work ... need to add the single cartpole if keeping it ... should I put in mass parameters , diagrams and the whole lot?  Maybe also move or repeat some of the RL stuff from the intro here??}
+
+We consider two systems, a double cartpole pendulum, and an Acrobot \cite{spong_swing_1994}. It was demonstrated in \cite{Gillen2020CombiningDR} that most model free deep reinforcement learning struggles with the full version of the Acrobot in particular. It is worth elaborating on that point. Many benchmarking suites (for example, OpenAI's gym \cite{1606.01540}) have underactuated systems like the acrobot or cartpole pendulum, however the tasks are typically either to swing the system up, or to balance it, never the two together. In fact the one example of a suite with the swingup and balance task \cite{deepmindcontrolsuite2018} shows that the algorithms they tried on it didn't really work.  
+
+For both systems, we use the variables $\phi_{1}$ and $\phi_{2}$ to refer to the joint angles. \todo{which is probably confusing, should I do a whole thing with a system diagram and like "we can write the dynamics in terms of the mass matrix etc etc" }
+
+
+\subsection{Acrobat}
+The Acrobot on the other hand was created by yours truly, it is more of a classical control system task, the only state varaibles are the joint angles and velocities, the reward is just the negative squared error. 
+
+\[r_{a} = -\phi_{1}^{2} - \phi_{2}^{2} \]
+
+
+\subsection{Inverted Double Pendulum}
+\todo{This subsection either needs considerably more detail, or considerably less.. and I'm not sure which}
+
+The pendulum environments are modified from Brax's existing benchmark environments, the only difference is that the initial condition is rotated 180 degrees from the upright. These environments are in the spirit of the RL community, and use some reward shaping, adding an an alive bonus as well as some feature extraction. rather than directly feeding in joint angles, both the reward and state variables are fed in as the x,y coordinate for the end of each link. The reward function for the environment is:
+
+
+\begin{equation} 
+r_{dp} = r_{alive} - r_{distance} - r_{velocity}
+\end{equation}
+
+Where 
+
+\begin{equation}
+r_{alive} = 10 
+\end{equation}
+
+\begin{equation}
+r_{distance} = 0.05x^{2} + (y - y_{des})^{2}
+\end{equation}
+
+\begin{equation}
+r_{velocity} = \dot \phi_{1} + \dot \phi_{2}
+\end{equation}
+
+and $y_{des}$ co-responds to the height of the second link when in the upright position
+
+
+% \begin{equation}
+% y = \sin(\phi_{1}) + \sin(\phi_{2})
+% \end{equation}
+
+% \begin{equation}
+% x = x_{cart} + \cos(\phi_{2}) + \cos(\phi_{2}) 
+% \end{equation}
+
+
+
+% \[ r_{p} = r_{A} -\sqrt{\sin(\phi_{1})^{2} + \cos(\phi_{1})^{2}}\]
+
+% Or in other words an alive bonus with a penalty for the euclidean distance of the tip of the pendulum to the goal state. The double pendulum likewise has the following reward: 
+
+% \begin{equation} r_{dp} = r_{A} -(\sqrt{(\sin(\phi_{1}) + \sin(\phi_{2}))^{2} + (\cos(\phi_{1}) + \cos(\phi_{2}))^{2}}
+% \end{equation}
+
+Or in english: an alive bonus minus the euclidean distance between the end of the second link and the goal state. 
+
+\subsection{The Brax Simulator}
+
+We use Brax \cite{brax2021github} for all of our simulations. Brax is a differential physics engine that can simulate systems made up of rigid bodies, joint constraints, and actuators. This allows Brax to simulate a wide variety of robotic systems. Brax is built on top of the Jax \cite{jax} framework, and one of it's primary advantages is that it can run massively parallel simulations very quickly on accelerator hardware, I.E.  TPUs and GPUs. In addition to this, by virtue of being written entirely in Jax, we can take arbitrary gradients through the simulator using autodiff. This opens the door for our gradient based control method.  
+
+% However as we've discussed, these analytic gradients suffer from some limitations that have made them difficult to use in practice. They have been found to have huge variance with respect to initial conditions. The appendix of the difftaichi \cite{hu2020difftaichi} paper has some good exposition on the subject. Many systems can have large "flat lands" in the reward space. (!!! offer billiard example here??, als, may move this discussion above when talking abpout gradients), and to large numbers of local minima. Another problem is that these gradients often have discontinuous jumps, imagine dropping a square object on the ground with a reward function equal to the final x position of the square. There will be a discontinuous jump with respect to the initial angle of the sqare (!!! this obviusly needs some work too). Yes another issue arises due to how autodiff handles conditionals. Although the auto-diff framework allows for gradients to propagate through conditionals, the auto-diff is essentially "blind" to these conditionals. For example, let's consider the classic cart-pole pendulum, which receives a reward of one for each step that the pole remains in the top half of the plane. The reward gradient for this system will always be zero. This obviously puts some limitations on the types of rewards suitable for this system. 
+
+% All this is to say, there are problems with the gradients that can make learning hard. 
+
+
+
+\subsection{Reward Landscape of the Acrobot}
+
+In \cite{metz2021gradients} they show that the reward landscape of the Ant system in Brax. They show it is indeed, a mess. This is maybe to be expected for a system subject to hard contacts etc. One might expect the Acrobot, or inverted pendulum, or other contact-less systems to have much a much smoother reward landscape. We tested this assumption. We started with a random neural network policy, and then sampled a random vector from policy space. We then added used this vector to shift the initial policy, and recorded the sum of rewards that resulted. Note that we use the same initial condition for each trial, the only difference between rollouts is that a very slightly different policy is used. 
+
+
+\begin{figure}[!htb]
+        \centering
+        \includegraphics[width=.8\linewidth]{paper-template-latex/figs/reward_landscape.png}
+        \caption{Some projections of the reward landscape for the acrobot. We start with a random policy, and then sample a random vector from the space of policy weights. Each line represents the reward sum for one random direction through policy space
+        \todo{Probably need to make the description clearer, and also I think it's an ugly plot}}
+\end{figure}
+
+As we can see, it's a mess, just an absolute mess, no wonder gradient descent isn't doing so hot. 
+
+
+
+\section{Methods}
+
+\todo{I think I should talk about APG first, then CEM, in the CEM section make it more concrete what we are doing (policy rollouts), and then how we combine these using }
+
+
+
+
+
+% \subsection{Reinforcement Learning}
+
+% The goal of reinforcement learning is to train an agent acting in an environment to maximize some reward function. At every timestep $t \in \mathbb{Z}$, the agent receives the current state $s_{t} \in \mathbb{R}^{n}$, uses that to compute an action $a_{t} \in \mathbb{R}^{b}$, and then receives the next state $s_{t+1}$, which is used to calculate a reward $r : \mathbb{R}^{n} \times \mathbb{R}^{m} \times \mathbb{R}^{n} \rightarrow \mathbb{R}$. We consider the finite time undiscounted reward case. The objective then is to find a policy  $\pi_{\theta}: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}$ such that:
+
+% \begin{equation} \argmax_{\theta} \mathop{\mathbb{E}}_{\eta}\left[ \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) \right] \end{equation}
+% where $\theta \in \mathbb{R}^{d}$ is a set that parameterizes the policy, and $\eta$ is a parameter representing the randomness in the environment. We will call the sum of rewards obtained during an episode a return. 
+
+
+\subsection{The Cross Entropy Method}
+
+
+The Cross Entropy Method (CEM \cite{RUBINSTEIN199789}) is a well established algorithm for importance sampling and optimization. Several other papers have used this method for control, although most of them use it as some sort of trajectory optimization (\todo{which papers, please cite}). We instead directly optimize the parametric policy, which is a more difficulty optimization problem, but which may be more general, and which is easy to deploy in real time after training is done. 
+
+CEM maintains a probability distribution over its decision variables, in this case the decision variables are the parameters for our policy. The most common formulation is to use a normal Distribution $\mathcal{N}(\mu_{\pi}, \sigma_{\pi})$. At each step we sample from this distribution, and use the following update rules: 
+
+\todo{Should I use another symbol... I guess $\sigma$ is usually standard deviation, either way, need to be consitent with notation here and in the algorithm section}
+
+\begin{equation}
+\label{eq:mean}
+    \mu_{\pi}^{+} = \frac{1}{K_{e}}\sum_{i=0}^{K_{e}}\mu_{i}
+\end{equation}
+
+
+\begin{equation}
+\label{eq:var}
+    \sigma_{\pi}^{+} = \frac{1}{K_{e}}\sum_{i=0}^{K_{e}}(\mu_{\pi} - \mu_{i})(\mu_{\pi} - \mu_{i})^{T}
+\end{equation}
+
+However the covariance matrix grows quadratically with the number of policy parameters, and due to the size of our policies, which are sometimes many thousands of parameters, we make the following simplification to the variance:
+
+\begin{equation}
+\label{eq:var}
+    \sigma_{\pi}^{+} = \frac{1}{K_{e}}\sum_{i=0}^{K_{e}}(\mu_{\pi} - \mu_{i})^{2}
+\end{equation}
+
+This implicitly ensures that our covariance "matrix" only has entries on the diagonal.
+
+\subsection{Analytic policy gradients}
+
+
+\todo{could add some more math here if I want}. 
+
+We are interested in the gradient of the sum of the reward function for a given episode with respect to the parameters for our policy. Because these are directly available, we can easily apply Adam \todo{find the adam citation} or a similar gradient ascent optimizer to our problem. Thus our algorithm is as follows. Do a N rollouts with the current policy parameters, take the gradient of the mean of the sum of these roll outs, use that gradient to update the current policy, repeat until convergence. 
+
+
+
+\subsection{Controller Architecture}
+
+\todo{Can also add some math here}
+
+To help combat the exploding / vanishing gradient problem that is inherent to iterated dynamical systems, we employ a Gated Recurrent Unit (GRU) network for our control policy \cite{8053243}. These networks were specifically designed to avoid these pathological gradient flows, and although on its own this change is not enough to obviate the exploding gradient problem, we found empirically that the difference helps dramatically. 
+
+In addition to this, we use deterministic policies, rather than the stochastic ones usually associated with deep reinforcement learning. Typically, when one trains a policy, the policy function is typically outputting a probability distribution over possible actions at each timestep. At every time step then, one generates a new distribution based on the current state, and then samples from that distribution to select an action that is then applied to the environment. However we instead output the action directly. It is worth motivating this. Especially for an unstable system, changes in the random sampling can drastically alter the gradient \todo{theres a good example in the appendix to the difftaichi paper}. Therefore during a standard policy rollout, two rollouts with the same policy may have wildly different gradients, therefore requiring either many more samples to estimate the true gradient, or destabilizing training... at least that's my claim ... 
+
+
+\subsection{Cross Entropy Analytic Policy Gradients}
+
+
+
+\begin{algorithm}
+\caption{Cross Entropy Analytic Policy Gradients}
+\label{algo:ceapg}
+\begin{algorithmic}
+\Require Policy $\pi$ with trainable parameters $\theta$
+\Require Hyper-parameters - $\sigma_{0}$, $K_{a}$, $K_{e}$
+\State Sample $\theta_{c} = [\theta_{1}, ..., \theta_{n}]$ from $\mathcal{N}(\theta, \sigma^{2})^{K_{a} x \abs{\theta}}$
+\For{$\theta_{i} \text{ in } \theta_{c}$}
+    \State Run APG with initial policy weights $\theta_{i}$
+    \State Collect sum of rewards $R_{i}$ and final policy $\theta_{i}$. 
+\EndFor
+\State \todo{Come up with notation for sorting by reward, also, be consistent with std vs variance}
+\State $\theta^{+} = \frac{1}{K_{e}}\sum_{i=0}^{K_{e}}\theta_{i} $
+\State $\sigma^{+} = \sqrt{\frac{1}{K_{e}}\sum_{i=0}^{K_{e}}(\theta - \theta_{i})^{2}}$
+
+
+%\State $ \theta^{+} = \theta + \frac{\alpha}{n \sigma_{R}}\sum_{i=0}^{n} (R_{i} - R_{i+n})\delta_{i} $ 
+\end{algorithmic}
+\end{algorithm}
+
+
+We combine these two algorithms as follows. Start with initial policy weight $\theta$, and an initial parameter variance $\sigma_{0}$. We then generate $K_{a}$ candidate policies by sampling from $\mathcal{N}(\theta, \sigma_{0})$. Using these policies as initial conditions, we run $K_{a}$ analytic policy gradient algorithms in parallel, which gives us new weight vector $ [ \theta_{0} , \theta_{1} ... \theta_{K_{a}} ]$, and the final rewards for these new policy weight, $R_{1}, R_{2} ... R_{n}$. We then order the policy weights in descending order based on their final return. Finally we select the top $K_{e}$ parameter weights and interpret them as the mean mean for new target distributions, and we use equations \ref{eq:mean} and \ref{eq:var} to update our parameter and variance vector. 
+
+
+
+
+\section{Results}
+
+\begin{figure*}[!h]
+  \centering
+  \begin{subfigure}[b]{0.32\linewidth}
+    \includegraphics[width=\linewidth]{paper-template-latex/figs/pendulum.png}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\linewidth}
+  \includegraphics[width=\linewidth]{paper-template-latex/figs/acrobot.png}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\linewidth}
+      \includegraphics[width=\linewidth]{paper-template-latex/figs/double_pendulum.png}
+  \end{subfigure}
+  \caption{Reward curves for CE-APG}
+  \label{fig:reward_curves}
+\end{figure*}
+
+
+
+We ran experiments on the aforementioned environments. For each experiment we ran trials with 8 random seeds. There are several sources of randomization during training, the inital value of the policy parameters, the noise added to the policy at the beginning of each iteration, and the initial condition of the simulator at the beginning of each episode. Figure \ref{fig:reward_curves}. For each of these trials we used the GRU controller architecture discussed above, with 2 hidden units of 64 hidden nodes each. During evaluation we performed roll-outs with the corresponding controller from N randomized initial conditions, and reported the results in table \ref{tab:results1}. In addition to our own algorithm, we also run comparisons from PPO, TD3, and Brax's own APG (which has some note-able difference from our own.) 
+
+
+\todo{This paragraph probably belongs somewhere else?}
+Differences between our APG and Brax APG. Different controller architectures, we use a deterministic GRU, they use a stochastic MLP. Related to this is the fact that the brax apg performs best when truncation is used in their BPTT algorithm, while we found this was not required. Furthermore the parellization characteristics are quite different, the Brax APG was designed for use with a TPU, and thus performs thousands of rollouts in parrell. Finally, they use the mean reward obtained from rollout out an environment with automatic resets. This implies they can't account for falls, sucks for them. More seriously though this doesn't effect the environments considered here, which are episodic but which do not implement early termination. 
+
+It is also of note that we found the performance of CE-APG to be significantly faster on CPU compared to GPU/TPU, this is in stark contrast to other algorithms designed for brax, especailly the ones that do not make use 
+
+Why compare to PPO. PPO is the "default algorithm" used these days by OpenAI, and indeed much of the rest of reinforcement learning community, also one of the most widely cited papers in the field. It is broadly applicable, relatively simple to implement.
+
+Soft Actor Critic \cite{haarnoja2018soft} is an off policy reinforcement learning algorithm that performs well ona variety of tasks. We used it because it was found to work well relative to other DRL algorithms on the acrobot. \cite{Gillen2020CombiningDR}
+
+
+
+
+\begin{table}[!htb]
+\label{tab:results1}
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|l|l|l|l|}
+\hline 
+Environment   & Pendulum              & Acrobot               & Double Pendulum \\ \hline \hline
+CE-APG (ours)    &   -630 $\pm$ 1000  &   -1961 $\pm$ 526       &   3410 $\pm$ 400\\  \hline
+PPO               &    -540 $\pm$ 359 &    -4295 $\pm$ 35       &  -7.1e5 $\pm$ 1.9e6         \\  \hline
+SAC               &    -253   $\pm$ 2    &     -3897.7 $\pm$ 718       &   1135 $\pm$ 851         \\ \hline
+Brax Apg        &    -3079   $\pm$ 759    &     -2986 $\pm$ 818       &   -3179 $\pm$ 6.3e4     \\ 
+
+\hline
+\end{tabular}
+\caption{Results of the training on our test environments, we report the mean and standard deviation of rewards obtained from training each algorithm with 8 different random seeds}
+\end{table}
+
+
+
+We can see that on the Acrobot and Double Pendulum, our algorithm significantly outperforms the others. We note that PPO gets extremely large negative rewards on the Double Pendulum environment. This is likely because there is no early termination in our environments, and velocities can get rather large during an episode with random actions (and recall, the reward includes a velocity squared term). Our algorithm does get edged out by SAC on the single link cartpole pendlum \todo{But only because of one bad seed that gets stuck at -3500, all the other seeds get the same -250 score as sac... }
+What does -4000 vs -1500 actually look like, well, here's a sample from the acrobot.
+
+
+\begin{figure}[!htb]
+\captionsetup[subfigure]{labelformat=empty}
+        \centering
+        \subfloat[]{\label{sublable1}\includegraphics[width=0.6\linewidth]{paper-template-latex/figs/ce-apg_acrobot.png}} \\
+        \subfloat[]{\label{sublable2}\includegraphics[width=0.6\linewidth]{paper-template-latex/figs/ppo_acrobot.png}}
+        \caption{Best performing seeds for CE-APG vs PPO on the Acrobot. As we can see CE-APG stabalizes the system at the equilibrium, whereas \todo{Insert whichever algorithm} does not \todo{TODO make these one matplotlib plot to get rid of excessive whitespace, and make the legends line up etc}}
+\end{figure}
+% \begin{figure}[!htb]
+ 
+%     \includegraphics[width=.6\linewidth]{paper-template-latex/figs/ce-apg_acrobot.png}
+%     \caption{}
+  
+% \end{figure}
+
+% \begin{figure}[!htb]
+ 
+%     \includegraphics[width=.6\linewidth]{paper-template-latex/figs/ppo_acrobot.png}
+%     \caption{}
+  
+% \end{figure}
+
+As we can see, the CE-APG found a way to swing the system up into it's equilbruim state and keep it there, whereas the highest performing rival, despite achieving a decent reward, fails to the do same. 
+
+
+
+% What about the double inverted pendulum? which included some reward shaping? Well the story is largely the same, let's look at figure 
+
+% \begin{figure}[!htb]
+% \captionsetup[subfigure]{labelformat=empty}
+%         \centering
+%         \subfloat[]{\label{sublable1}\includegraphics[width=0.6\linewidth]{paper-template-latex/figs/ce-apg_acrobot.png}} \\
+%         \subfloat[]{\label{sublable2}\includegraphics[width=0.6\linewidth]{paper-template-latex/figs/ppo_acrobot.png}}
+%         \caption{Best performing seeds for CE-APG vs PPO on the Acrobot. As we can see CE-APG stabalizes the system at the equilibrium, whereas PPO does not}
+% \end{figure}
+
+
+
+
+
+\section{Ablation Studies}
+
+In addition to the comparisons done above, we also conducted several ablation studies. We conducted experiments using only the gradient free CEM method, with no analytic policy gradients being used. And also compared to only using our implementation of APG. For the APG we also add noise to the initial policy to give K=24 initial policies. We then run APG K times in parellel, but rather than periodically collapsing the policy using the CEM, we simply allow the gradient descent to continue. In both cases we still used the GRU controller architecture as before. In the case of CEM we used 2000 iterations for every environment, which we found to be well past the point of convergence. For APG we used 200*75 iterations, to give a comparable number of environment interactions to our CE-APG. The results are shown in table \ref{tab:ablation} \todo{not sure why this reference is broken}.
+
+\begin{table}[!htb]
+\label{tab:ablation}
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|l|l|l|l|}
+\hline 
+Environment         & Pendulum & Acrobot & Double Pendulum \\ \hline \hline
+CE-APG (ours)    &   -630 $\pm$ 1000  &   -1961 $\pm$ 526       &   3410 $\pm$ 400 \\  \hline
+PAPG             &    -2059 $\pm$ 1256       &     -2052 $\pm$ 457        &  1075 $\pm$ 449$^{*}$          \\  \hline
+CEM              &    -1465 $\pm$ 287        &       -4473 $\pm$ 227       &   831 $\pm$ 243       \\ \hline
+
+\hline
+\end{tabular}
+\caption{Results from ablation studies \todo{TODO explain that there were some NaNs in the double pendulum PAGP case}}
+
+\end{table}
+
+
+As we can see, the performance of either method individually is extremely poor, falling behind all the other methods together. \todo{Maybe I can add some reasoning as to why this would be}
+
+\section{Discussion and future work}
+
+    We have shown that the method introduced here is effective for a certain class of system, nonlinear underacted systems with unstable target states. This is interesting because other model free RL algorithms struggle with these systems. 
+
+    This work also shows one way to use what turns out to be a very challenging tool effectively. It is still an open question as to what role analytic gradients have to play in learning based control of robotic systems in the future, however we think this paper shows that there is hope!
+    
+    Work remains in getting this algorithm to work effectively in contact rich environments. There is active work in the community to make brax friendlier to analytic gradient based algorithms, in particular adding soft contacts, which may very well help a lot. 
+    
+    Other improvements could be made, for example importance sampling has been found to improve the sample efficiency of CEM by a factor of 10. We were not able to effectively implement this improvement due to some technical limitations with pmap. Basically we are constrained to always use the same number of threads during each round of computation. Also we could increase the value of $K_{a}$ if only I wasn't so lazy and vmapped my pmap... 
+
+\section{Conclusion} 
+\label{sec:conclusion}
+
+In conclusion, we presented Cross Entropy Analytic Policy Gradients, an algorithm that can exploit analytic gradients. We covered some relevant background, introduced our method, and placed it in the broader context. We then presented our algorithm and the environments we used for testing. We then presented results of our algorithm compared to state of the art baselines, as well as some ablation studies. We dug into detail with the acrobat environment, contextualizing the rewards we presented. This demonstrated that our algorithm was able to successfully stabilize the system, whereas our competitors where not. We think this algorithm is exciting and can be built upon. 
+%\section*{Acknowledgments}
+
+
+%% Use plainnat to work nicely with natbib. 
+
+\section{Apendix}
+\subsection{Hyper Params}
+
+We report the hyper parameters used for each experiment here. In all cases we used a manual hyper parameter search. 
+
+
+\begin{center}
+\begin{tabu}{ X[2,l] | X[1,l] }
+CE-APG Hyperparameter & Value \\
+ \hline
+ Episode length ($N_{e}$) & 500  \\ 
+ Action Repeat & 1  \\ 
+ APG Epochs & 75 \\ 
+ Total Epochs & 200 \\ 
+ initial std & 1e-3 \\
+ learning rate & 5e-4 \\
+ $K_{a}$ & 24 \\
+ $K_{e}$ & 8 \\
+\end{tabu}
+\end{center}
+
+
+\begin{center}
+\begin{tabu}{ X[2,l] | X[1,l] }
+PPO Hyperparameter & Value \\
+ \hline
+ Episode length ($N_{e}$) & 500  \\ 
+ Action Repeat & 1  \\ 
+ Total Timesteps & 8e7 \\ 
+ Reward Scaling & 1 \\
+ Minibatch Size & 32 \\
+ Batch Size & 512 \\
+ Unroll Length  & 50 \\
+ N Update Epochs & 8 \\
+ Discounting & 0.99 \\
+ Learning Rate & 3e-4 \\
+ Entropy Cost & 1e-3 \\
+ N Envs & 512 \\
+\end{tabu}
+\end{center}
+
+
+\begin{center}
+\begin{tabu}{ X[2,l] | X[1,l] }
+SAC Hyperparameter \todo{TODO} & Value \\
+ \hline
+ Episode length ($N_{e}$) & 500  \\ 
+ Action Repeat & 1  \\ 
+ Total Timesteps & 8e7 \\ 
+ Reward Scaling & 1 \\
+ Minibatch Size & 32 \\
+ Batch Size & 512 \\
+ Unroll Length  & 50 \\
+ N Update Epochs & 8 \\
+ Discounting & 0.99 \\
+ Learning Rate & 3e-4 \\
+ Entropy Cost & 1e-3 \\
+ N Envs & 512 \\
+\end{tabu}
+\end{center}
+
+
+
+\begin{center}
+\begin{tabu}{ X[2,l] | X[1,l] }
+Brax-APG Hyperparameter \todo{TODO} & Value \\
+ \hline
+ Episode length ($N_{e}$) & 500  \\ 
+ Action Repeat & 1  \\ 
+ APG Epochs & 75 \\ 
+ Total Epochs & 200 \\ 
+ initial std & 1e-3 \\
+ learning rate & 5e-4 \\
+ $K_{a}$ & 24 \\
+ $K_{e}$ & 8 \\
+\end{tabu}
+\end{center}
+
+

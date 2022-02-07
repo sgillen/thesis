@@ -1,0 +1,30 @@
+\begin{table}[hb]
+\center
+\small
+\begin{tabular}{ llll }
+\toprule
+Env. & Algo. 
+                  & Fail \% Before         &  Fail \% After \\ 
+\midrule
+\multirow{4}{*}{Walker}
+
+% & PPO        & 2.31 $\pm$ 0.71   & 7.34 $\pm$  1.56 \\
+% & TD3   & \textbf{1.06 $\pm$ 1.13}  & \textbf{2.83  $\pm$ 1.27} \\ 
+% & SAC   & \textbf{1.06 $\pm$ 1.13}  & \textbf{2.83  $\pm$ 1.27} \\
+% & TQC   & \textbf{1.06 $\pm$ 1.13}  & \textbf{2.83  $\pm$ 1.27} \\
+% & A2C   & \textbf{1.06 $\pm$ 1.13}  & \textbf{2.83  $\pm$ 1.27} \\
+% & DDPG   & \textbf{1.06 $\pm$ 1.13}  & \textbf{2.83  $\pm$ 1.27}\\
+
+& A2C   &       19.33   &       12.00 \\
+& PPO   &       0.00    &       0.33 \\
+& DDPG  &       42.67   &       4.00 \\
+& TD3   &       12.33   &       1.67 \\
+& SAC   &       2.33    &       0.67 \\
+& TQC   &       5.67    &       0.00 \\
+
+\bottomrule
+\end{tabular}
+\caption{\label{tab:falls} Measured early termination events before and after the fine tuning process \\
+}
+%Put here to reduce too much white space after your table 
+\end{table}

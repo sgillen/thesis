@@ -1,0 +1,276 @@
+%%%---PREAMBLE---%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[oneside,12pt,final]{sty/ucthesis-CA2012}
+\pdfoutput=1
+
+%--- Packages ---------------------------------------------------------
+
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{multirow}
+
+\usepackage{graphicx} % Required to insert images
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[english]{babel}
+%\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{color}
+%\usepackage{algorithm}
+\usepackage{algorithm2e}
+\usepackage{csquotes}
+\usepackage{algpseudocode}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\usepackage{float}
+\usepackage{commath}
+\usepackage{booktabs}
+\usepackage{hyperref}
+% in preamble
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{xspace}
+\usepackage{braket}
+\usepackage{color}
+\usepackage{setspace}
+
+\renewcommand{\vec}[1]{\mathbf{#1}}
+
+\usepackage{tabu}
+\usepackage{multirow}
+
+\usepackage[english]{babel}
+
+\usepackage{wrapfig}
+\usepackage{lipsum}
+
+\usepackage{breqn}
+\usepackage{pdfpages}
+%\usepackage{caption}
+\usepackage{subfigure} %(Subfigure package clashes with another package)
+
+
+
+
+
+%---New Definitions and Commands------------------------------------------------------
+\def\p{\partial}
+\def\im{\mrm{im}}
+\def\Tr{\mrm{Tr}}
+\def\Z{\mbb{Z}}
+\def\R{\mbb{R}}
+\def\C{\mbb{C}}
+\def\half{\frac{1}{2}}
+\def\filler{\phantom{fillerfillerfiller}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\mbb}[1]{\mathbb{#1}}
+\newcommand{\mrm}[1]{\mathrm{#1}}
+\newcommand{\mcal}[1]{\mathcal{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\newcommand{\ph}[1]{\phantom{#1}}
+\newcommand{\udten}[3]{#1^{#2}_{\ph{#2}#3}}
+\newcommand{\duten}[3]{#1^{\ph{#2}#3}_{#2}}
+%\newcommand{\pd}[2]{\frac{\p#1}{\p#2}}
+\newcommand{\D}[2]{\frac{d#1}{d#2}}
+
+\newcommand{\todo}[1]{\color{red}#1\color{black}}
+
+%---Set Margins ------------------------------------------------------
+\setlength\oddsidemargin{0.25 in} \setlength\evensidemargin{0.25 in} \setlength\textwidth{6.25 in} \setlength\textheight{8.50 in}
+\setlength\footskip{0.25 in} \setlength\topmargin{0 in} \setlength\headheight{0.25 in} \setlength\headsep{0.25 in}
+
+%%%---DOCUMENT---%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+%=== Preliminary Pages ============================================
+\begin{frontmatter}
+	\input{tex/title}
+	\maketitle
+	\approvalpage
+	\copyrightpage
+	\input{tex/dedicate}%comment out if you don't want a dedication
+	\input{tex/acknowledgements}
+	%\input{tex/vitae}
+    \includepdf[pages=-]{sgillen_resume.pdf}
+	\input{tex/abstract}
+	\tableofcontents
+\end{frontmatter}
+
+\begin{mainmatter}
+
+%---Set Headers and Footers ------------------------------------------------------
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{{\sf #1 \hspace*{\fill} Chapter~\thechapter}}{} }
+\renewcommand{\sectionmark}[1]{\markright{ {\sf Section~\thesection \hspace*{\fill} #1 }}}
+\fancyhf{}
+
+\makeatletter \if@twoside \fancyhead[LO]{\small \rightmark} \fancyhead[RE]{\small\leftmark} \else \fancyhead[LO]{\small\leftmark}
+\fancyhead[RE]{\small\rightmark} \fi
+
+\def\cleardoublepage{\clearpage\if@openright \ifodd\c@page\else
+  \hbox{}
+  \vspace*{\fill}
+  \begin{center}
+    This page intentionally left blank
+  \end{center}
+  \vspace{\fill}
+  \thispagestyle{plain}
+  \newpage
+  \fi \fi}
+\makeatother
+\fancyfoot[c]{\textrm{\textup{\thepage}}} % page number
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\fancypagestyle{plain} { \fancyhf{} \fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+
+%=== Introduction ============================================
+\chapter{Introduction}
+
+Reinforcement learning has a long history, which I will tell you about at length.
+
+Now in recent years research into deep reinforcement has exploded, with many impressive results advancing the state of the art in many fields.
+It can solve a lot of cool problems: 
+    - Roboust Walking Robots \\ 
+    - Super human video game AI (starcraft, dota, atari) \\ 
+    - Board Games (Go, Chess) (State of the art here ... \todo{Is it} \\ 
+    - Object Manipulation (Rubics cube) \\ 
+    
+    
+However there are a number of glaring issues I see with the current state of the art in reinforcement learning.
+    - Sample Inefficient \\
+    - Sim 2 real must be solved, for robotics \\ 
+    - Can't trust \\ 
+    - Quantifying Performance is Hard \\ 
+    - It is extremely Brittle  \\ 
+    - Sensitive To Initial Conditions \\ 
+    - Does Terribly in Some Kinds of Problems
+    
+    
+I take some steps to solve this
+
+    I solved the Acrobot, Twice ... Very Cool
+    
+    I did some reward post processing on a Markov chain thing
+    Uhh anyway ... 
+    
+
+
+%=== Chapter  ============================================
+\chapter{Background}
+%---  Section -------------------------
+\begin{section}{Reinforcement Learning}
+
+
+What is reinforcement learning? Let's introduce the basic terminology first, we will formalize this later. An agent takes actions in an environment in order to maximize a reward. The environment is described by a state, which can be observed (sometimes only partially) by the agent. One example might be a chess playing program, the state is the position of the pieces on the board, the action the their move on the current term, and their reward is a one when they win the game and a zero otherwise. Or maybe the agent is a robot, whose states are joint angles and velocities, whos actions are motor commands, and whos reward function is their forward velocity. Another example might be a motor inside that very robot, it's state might include a motor command and a measurement of the current motor position, and it's output might be a voltage signal.
+
+As these examples hopefully illustrate, reinforcement learning is extremely general, and can and has been applied to a myriad of problems across a number of domains. 
+
+A history of reinforcement learning... Do I need this? 
+I can just present the state of the art here to compare to what I did. And I can do that in chronological order
+
+Definition and Problem Statement, maybe some early victories
+
+
+In reinforcement learning, the goal is to train an agent, acting in an environment, to maximize some reward function. The environment is a discrete time dynamical system described by state $s_{t} \in \mathbb{R}^{n}$ and the current action $a_{t} \in \mathbb{R}^{b}$. an evolution function $f: \mathbb{R}^{n} \times \mathbb{R}^{b} \rightarrow \mathbb{R}^{n}$ takes as input the current state and action, and outputs the state at time t+1:
+
+
+\begin{equation}
+s_{t+1}= f(s_{t},a_{t})
+\end{equation} 
+
+The controller is the function we are learning $g: \mathbb{R}^{n} \times \mathbb{R}^{\norm{\theta}} \rightarrow \mathbb{R}^{m}$ such that:
+
+\begin{equation}
+a_{t} = g(s_{t}, \theta)
+\end{equation} 
+
+The goal is to maximize a reward function $r : \mathbb{R}^{n} \times \mathbb{R}^{m} \times \mathbb{R}^{n} \rightarrow \mathbb{R}$. We consider the finite time undiscounted reward case. The objective function then is:
+
+\begin{equation} 
+R(\theta) =  \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) 
+\end{equation}
+
+
+Then REINFORCE
+
+Then some stuff I don't care about
+
+\subsection{Deep Reinforcement Learning}
+Sometimes around 2012 or so, deep neural networks saw a resurgence of interest in the space of supervised learning. This is usually attributed to the success of the work of Alex Krizhevsky who showed that convolutional neural networks were extremely effective at image classification \cite{NIPS2012_c399862d}. 
+
+\todo{Should I introduce nueral network here?}
+
+Only a few years later, we saw a big breakthrough, a team was able to train neural networks to play Atari games at a superhuman level. The input was the raw pixel values from the game, and the reward is the score from the game. This is remarkable for a number of reasons, but it's cool that the same algorithm was able to work successfully across a wide variety of games, which you might think require very different strategies. \cite{mnih2015humanlevel}
+
+\subsection{Locomotion and Control with Reinforcement Learning}
+
+There are sort of two schools of thought when it comes to RL for locomotion. There's RL for the animation of physics based characters, which is mostly useful in the context of movies or video games. This is mostly centered in michael v. panns group (\todo{probably}) at 
+Then there is everyone else, who is in it for robotics, or just for pure RL maybe ... 
+
+Google brain, deepmind, openAI, Berkely AI lab, these are the most prolific labs in this space. 
+
+Still need to introduce openAI gym, and dm control suite...
+And also talk about the sort of two schools of thought, character animation and robotic control. 
+
+Here's where we get to the part that introduced me to the topic. In 2017 Deep Mind released some work regarding locomotion policies in simulated environments, they look a little silly, but I thought it was mind blowing at the time, since I was working with a simpler system, and couldn't get it to work at. all. 
+
+Then Deep Mind Mujoco, PPO, Lots of stuff
+    
+These can be divided into: 
+    - On Policy
+    - Off Policy
+
+A Word on Model Based Reinforcement Learning:
+    - Not covered here, but here's what it would be 
+
+
+\end{section}
+
+%=== Chapter ==============================================
+\chapter{Switching}
+
+\input{tex/p1.tex}
+
+%=== Chapter   ============================================
+\chapter{Mesh Dimensions}
+
+\input{tex/p2.tex}
+
+\input{tex/p3.tex}
+
+\chapter{Fine Tuning}
+
+\input{tex/p4.tex}
+
+\chapter{Differentiable Simulators}
+
+\input{tex/p5.tex}
+
+\Chapter{Conclusions}
+
+
+
+%=== Appendix ============================================
+\appendix
+
+\dsp
+
+\chapter{Appendix Title }{\label{appendix:a}}
+\begin{section}{Section Title}
+
+Appendicitis
+
+\end{section}
+\end{mainmatter}
+
+%----- Bibliography ----------------
+\ssp
+\bibliographystyle{JHEP3}
+\bibliography{dissertation}
+
+\end{document} 
