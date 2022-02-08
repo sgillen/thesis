@@ -203,7 +203,20 @@ Then some stuff I don't care about
 \subsection{Deep Reinforcement Learning}
 Sometimes around 2012 or so, deep neural networks saw a resurgence of interest in the space of supervised learning. This is usually attributed to the success of the work of Alex Krizhevsky who showed that convolutional neural networks were extremely effective at image classification \cite{NIPS2012_c399862d}. 
 
-\todo{Should I introduce nueral network here?}
+\subsubsection{Function Approximators and Neural Networks}
+
+It's worth taking a second here and talking about so called function approximators and neural networks, because otherwise the rest of this paper won't make any sense. A function approximator is really just a function which has tunable parameter in addition to inputs and outputs. In controls or reinforcement learning, we usually just call these "parameterized policies". Let's look at a simple example, third order polynomial with coefficients $a_{0}$, $a_{1}$, and $a_{2}$
+
+\begin{equation}
+\label{eq:poly}
+    y = a_{0} + a_{1}x + a_{2}x^{2}
+\end{equation}
+
+At risk of belaboring the point, the equation above has an input (x), and output(y) but also parameters($a$). In function approximation, we typically have data from an unknown function, often sampled from a physical system, and we wish to solve for parameters such that our function approximator best matches the output of the target function. 
+
+One of the most successful and popular function approximators, especially in recent years, have been neural networks. These come in many flavors, multilayers perecptrons (MLPs), convolutional neural networks (CNNs), long short term memories (LSTM) and Gated Recurrent Units (GRUs).
+
+\todo{should I talk about these in detail?? }
 
 Only a few years later, we saw a big breakthrough, a team was able to train neural networks to play Atari games at a superhuman level. The input was the raw pixel values from the game, and the reward is the score from the game. This is remarkable for a number of reasons, but it's cool that the same algorithm was able to work successfully across a wide variety of games, which you might think require very different strategies. \cite{mnih2015humanlevel}
 
