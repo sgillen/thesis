@@ -174,7 +174,7 @@ A history of reinforcement learning... Do I need this?
 I can just present the state of the art here to compare to what I did. And I can do that in chronological order
 
 Definition and Problem Statement, maybe some early victories
-
+\todo{Also need to indtroduce Q function and Value functions}
 
 In reinforcement learning, the goal is to train an agent, acting in an environment, to maximize some reward function. The environment is a discrete time dynamical system described by state $s_{t} \in \mathbb{R}^{n}$ and the current action $a_{t} \in \mathbb{R}^{b}$. an evolution function $f: \mathbb{R}^{n} \times \mathbb{R}^{b} \rightarrow \mathbb{R}^{n}$ takes as input the current state and action, and outputs the state at time t+1:
 
@@ -234,9 +234,10 @@ Here's where we get to the part that introduced me to the topic. In 2017 Deep Mi
 
 Then Deep Mind Mujoco, PPO, Lots of stuff
     
-These can be divided into: 
-    - On Policy
-    - Off Policy
+    
+We can further divide up DRL into on policy and off policy algorithms. On policy algorithms use only data obtained with the under the current policy to make policy updates. After an update it essentially throws out the data obtained so far and starts afresh. Examples of this include the classic REINFORCE, A2C, TPRO and PPO. Off policy algorithms by contrast use data obtained by previous policies to continue updating. This usually takes the form of a "replay buffer" which stores state, action, and reward tuples obtained so far during training. These tuples can then be used to update the current policy. Off policy algorithms are often a variant of Q learning, since the Q function in reinforcement learning  does not require the current action, it is well suited to off policy learning. 
+
+In general, off policy algorithms tend to be more sample efficient, requiring less samples to obtain a similar reward level. On policy algorithms are less sample efficient, but do tend to be more stable, getting more consistent rewards across random seeds.
 
 A Word on Model Based Reinforcement Learning:
     - Not covered here, but here's what it would be 
