@@ -165,25 +165,26 @@ For each snapshot, we initialize the system in the snap-shotted state. For each 
 For every new state added to the mesh, we repeat this process until every state has been explored. Algorithm \ref{algo:createMesh} details this process in pseudo code.
 
 \begin{algorithm}
-\SetAlgoLined
+\begin{algorithmic}[1]
 %\KwResult{Mesh Table, Deterministic State Transition Matrix}
-\textbf{Input:} Initial states $S_{i}$, Disturbance set $D$\\
-\textbf{Output:} Mesh M. \\
-Q $\leftarrow S_{i}$ (excluding the failure state) \\
-\While{Q not empty}{
-    pop q from Q \\ 
-    \For{d $\in$ D}{
-        Initialize system in state q \\
-        Run system for one step subject to disturbance d \\
-        Obtain final state x \\
-        \If{x $\notin$ M}{
-            M[x] = List() \\ 
-            Push x onto Q
-        }
-        Append x to M[q]
-    }
-}
-\textbf{Return:} M \\
+\State \textbf{Input:} Initial states $S_{i}$, Disturbance set $D$
+\State \textbf{Output:} Mesh M. 
+\State Q $\leftarrow S_{i}$ (excluding the failure state) 
+\While{Q not empty}
+    \State pop q from Q 
+    \For{d $\in$ D}
+        \State Initialize system in state q 
+        \State Run system for one step subject to disturbance d 
+        \State Obtain final state x 
+        \If{x $\notin$ M}
+            \State M[x] = List()  
+            \State Push x onto Q
+        \EndIf
+        \State Append x to M[q]
+    \EndFor
+\EndWhile
+\State \textbf{Return:} M 
+\end{algorithmic}
 \caption{createMesh}
 \label{algo:createMesh}
 \end{algorithm}

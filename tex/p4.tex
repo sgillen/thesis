@@ -1,6 +1,6 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{abstract}
+\section{Abstract}
 Researchers have demonstrated that Deep Reinforcement Learning (DRL) is a powerful tool for finding policies that perform well on complex robotic systems. However, these policies are often unpredictable and can induce highly variable behavior when evaluated with only slightly different initial conditions. Training considerations constrain DRL algorithm designs in that most algorithms must use stochastic policies during training. The resulting policy used during deployment, however, can and frequently is a deterministic one that uses the Maximum Likelihood Action (MLA) at each step. In this work, we show that a direct random search is very effective at fine-tuning DRL policies by directly optimizing them using deterministic rollouts. We illustrate this across a large collection of reinforcement learning environments, using a wide variety of policies obtained from different algorithms. Our results show that this method yields more consistent and higher performing agents on the environments we tested. Furthermore, we demonstrate how this method can be used to extend our previous work on shrinking the dimensionality of the reachable state space of closed-loop systems run under Deep Neural Network (DNN) policies. 
 
 % "will likely" sounds speculative/prediction-oriented--maybe "often has" if it's more a statement that exploration noise is usually different from the robotic system?
@@ -9,10 +9,6 @@ Researchers have demonstrated that Deep Reinforcement Learning (DRL) is a powerf
 
 
 
-
-
-
-\end{abstract}
 %\blfootnote{Code hosted at: \url{github.com/sgillen/policy_refinement}}
 \section{Introduction}
 
@@ -77,20 +73,20 @@ We also note that we ran experiments where we train only a subset of the neural 
 
 
 
-% \begin{algorithm}
-% \caption{Direct Policy Search}\label{algo:brs}
-% \begin{algorithmic}
-% \Require Policy $\pi$ with trainable parameters $\theta$
-% \Require Hyper-parameters - $\alpha$ $\sigma$ $n$
-% \State Sample $\bf{\delta} = [\delta_{1}, ..., \delta_{n}]$ from $\mathcal{N}(0, \sigma)^{\text{n x }\abs{\theta}}$
-% \State $\theta^{*}  = [\theta - \delta_{1}, ..., \theta - \delta_{n}, \theta + \delta_{1}, ..., \theta + \delta_{n}] $
-% \For{$\theta_{i}$ in $\theta^{*}$}
-%     \State Do rollout with policy $\pi_{\theta_{i}}$, using the MLA
-%     \State Collect sum of rewards $R_{i}$. 
-% \EndFor
-% \State $ \theta^{+} = \theta + \frac{\alpha}{n \sigma_{R}}\sum_{i=0}^{n} (R_{i} - R_{i+n})\delta_{i} $ 
-% \end{algorithmic}
-% \end{algorithm}
+\begin{algorithm}
+\caption{Direct Policy Search}\label{algo:brs}
+\begin{algorithmic}[1]
+\Require Policy $\pi$ with trainable parameters $\theta$
+\Require Hyper-parameters - $\alpha$ $\sigma$ $n$
+\State Sample $\bf{\delta} = [\delta_{1}, ..., \delta_{n}]$ from $\mathcal{N}(0, \sigma)^{\text{n x }\abs{\theta}}$
+\State $\theta^{*}  = [\theta - \delta_{1}, ..., \theta - \delta_{n}, \theta + \delta_{1}, ..., \theta + \delta_{n}] $
+\For{$\theta_{i}$ in $\theta^{*}$}
+    \State Do rollout with policy $\pi_{\theta_{i}}$, using the MLA
+    \State Collect sum of rewards $R_{i}$. 
+\EndFor
+\State $ \theta^{+} = \theta + \frac{\alpha}{n \sigma_{R}}\sum_{i=0}^{n} (R_{i} - R_{i+n})\delta_{i} $ 
+\end{algorithmic}
+\end{algorithm}
 
 
 \subsection{Environments}

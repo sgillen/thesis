@@ -15,10 +15,14 @@
 \usepackage[english]{babel}
 %\usepackage[ruled,vlined]{algorithm2e}
 \usepackage{color}
-%\usepackage{algorithm}
-\usepackage{algorithm2e}
+
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+%\usepackage{algorithmicx}  
+%\usepackage[algo2e]{algorithm2e} 
+%\usepackage{algpseudocode}
+
 \usepackage{csquotes}
-\usepackage{algpseudocode}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \renewcommand{\vec}[1]{\mathbf{#1}}
@@ -197,6 +201,8 @@ R(\theta) =  \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1})
 
 
 Then REINFORCE
+
+REINFORCE is the OG policy gradient algorithm, it's pretty old and influential. \todo{I need to introduce policy gradients here I guess}
 
 Then some stuff I don't care about
 

@@ -199,22 +199,22 @@ Where $y_{i}$ is the class label for the ith sample, $c_{w}$ is a class weight f
 The second extension is a modification of the replay buffer $D$. We do this by constructing $D$ from two separate buffers, $D_{n}$ and $D_{r}$. Only roll outs that ended in a successful balance (as defined by equation (\ref{T})) are stored in $D_{r}$. The other buffer stores all trials, the same as the unmodified replay buffer. Whenever we draw experience from $D$, with probability $p_{d}$ we sample from $D_{n}$, and with probability $(1-p_{d})$ we sample from $D_{r}$. We found this to speed up learning dramatically, as even with the LQR and a decent gating function in place, the swing-up controller finds the basin of attraction only in a tiny minority of trials.
 
 
-% \begin{algorithm}
-% \caption{Warm Start Gate Data Generation}\label{euclid}
-% \begin{algorithmic}[1]
-% \State Initialize network weights $\gamma$ 
-% \For {$i \in \{1, ..., N_{d}\} $}
-% \State  sample initial state $s_{0}$ from observation space
-% \If {$s_{i} \in B$}
-% \State    $y_{i} = 0$
-% \Else
-% \State    $y_{i} = 1$
-% \EndIf
-% \EndFor
-% \State set $\alpha(0) = 1$, and $\alpha(1) = \frac{\text{sum(y)}}{\text{len(y}}$
-% \State update $G_{\gamma}$ with $n_{w}$ steps of Adam to minimize $L^{ws}$
-% \end{algorithmic}
-% \end{algorithm}
+\begin{algorithm}
+\caption{Warm Start Gate Data Generation}\label{euclid}
+\begin{algorithmic}[1]
+\State Initialize network weights $\gamma$ 
+\For {$i \in \{1, ..., N_{d}\} $}
+\State  sample initial state $s_{0}$ from observation space
+\If {$s_{i} \in B$}
+\State    $y_{i} = 0$
+\Else
+\State    $y_{i} = 1$
+\EndIf
+\EndFor
+\State set $\alpha(0) = 1$, and $\alpha(1) = \frac{\text{sum(y)}}{\text{len(y}}$
+\State update $G_{\gamma}$ with $n_{w}$ steps of Adam to minimize $L^{ws}$
+\end{algorithmic}
+\end{algorithm}
 
 % policy = $\pi_{\theta}$ \\
 % gate   = $G_{\gamma}$ \\
@@ -224,58 +224,58 @@ The second extension is a modification of the replay buffer $D$. We do this by c
 % Q2 = $Q_{\rho_{2}}$ \\
 
 
-% \begin{algorithm}
-% \caption{Do-Rollout($G_{\gamma}, \Pi_{\theta}$, K)}
-% \label{alg:rollout}
-% \begin{algorithmic}[1]
-% \State $s = r = a = g = r = \{\}$
-% \State  Reset environment, collect $s_{0}$
-% \For    {$t \in \{0, ..., T\} $}
-% \State  $g_{t} = hyst(G_{\gamma}(s_{t}))$ 
-% \If {$(g_{t}) == 1$}
-% \State    $a_{t} = -Ks_{t}$
-% \Else
-% \State   Sample $\epsilon_{t}$ from $N(0, 1)$
-% \State   $a_{t} = \beta\tanh(\mu_{\theta}(s_{t}) + \sigma_{\theta}(s_{t})*\epsilon_{t})$ 
-% \EndIf
-% \State   Take one step using $a_{t}$,  collect $\{s_{t+1}, r_{t}\}$
-% \State   $s = s \bigcup s_{t}$, $r = r \bigcup r_{t}$
-% \State   $a = a \bigcup a_{t}$,  $g = g \bigcup g_{t}$
-% \EndFor
-% \State \bf{return} $s, a, r, g$
-% \end{algorithmic}
-% \end{algorithm}
+\begin{algorithm}
+\caption{Do-Rollout($G_{\gamma}, \Pi_{\theta}$, K)}
+\label{alg:rollout}
+\begin{algorithmic}[1]
+\State $s = r = a = g = r = \{\}$
+\State  Reset environment, collect $s_{0}$
+\For    {$t \in \{0, ..., T\} $}
+\State  $g_{t} = hyst(G_{\gamma}(s_{t}))$ 
+\If {$(g_{t}) == 1$}
+\State    $a_{t} = -Ks_{t}$
+\Else
+\State   Sample $\epsilon_{t}$ from $N(0, 1)$
+\State   $a_{t} = \beta\tanh(\mu_{\theta}(s_{t}) + \sigma_{\theta}(s_{t})*\epsilon_{t})$ 
+\EndIf
+\State   Take one step using $a_{t}$,  collect $\{s_{t+1}, r_{t}\}$
+\State   $s = s \bigcup s_{t}$, $r = r \bigcup r_{t}$
+\State   $a = a \bigcup a_{t}$,  $g = g \bigcup g_{t}$
+\EndFor
+\State \bf{return} $s, a, r, g$
+\end{algorithmic}
+\end{algorithm}
 
 
-% \begin{algorithm}
-% \label{algo:SSAC}
-% \caption{Switched Soft Actor Critic}\label{euclid}
-% \begin{algorithmic}[1]
-% \State Initialize network weights $\theta ,\phi, \gamma, \rho_{1}, \rho_{2}$ randomly
-% \State set $\overline \phi = \phi$
-% \For  {$n \in \{0, ..., N_{e}\} $}
-% \State $s,r,a,g = \text{Do-Rollout}(G_{\gamma}, \Pi_{\theta}, K)$
-% \If {$T(s)$}
-% \State Store $s,r,a$ in $D_{n}$
-% \EndIf
-% \State Store $s,r,a$ in $D_{r}$
-% \State Store $s,g,T(s)$ in $D_{g}$
-% \If {Time to update policy}
-% \State sample $s^{r}, a^{r}, r^{r}$ from $D$
-% \State $\hat Q \approx R + \gamma V_{\overline{\phi}}(S)$
-% \State $Q^{min} = \min(Q_{\rho_{1}}(s^{r},a^{r}), Q_{\rho_{2}}(s^{r},a^{r}))$
-% \State $\hat V \approx Q^{min} - \alpha H(\pi_{\theta} (A|S))$
-% \State Run one step of Adam on $L^{Q}(s^{r}, q^{r}, r^{r})$
-% \State Run one step of Adam on $L^{\pi}(s^{r})$
-% \State Run one step of Adam on $L^{V}(s^{r})$
-% \State   $\overline \phi =  q \overline \phi + (1-q)\phi$
-% \EndIf
-% \If {Time to update gate}
-% \State Run one step of Adam on $L^{G}$ using all samples in $D_{g}$
-% \EndIf
-% \EndFor
-% \end{algorithmic}
-% \end{algorithm}
+\begin{algorithm}
+\label{algo:SSAC}
+\caption{Switched Soft Actor Critic}\label{euclid}
+\begin{algorithmic}[1]
+\State Initialize network weights $\theta ,\phi, \gamma, \rho_{1}, \rho_{2}$ randomly
+\State set $\overline \phi = \phi$
+\For{$n \in \{0, ..., N_{e}\} $}
+\State $s,r,a,g = \text{Do-Rollout}(G_{\gamma}, \Pi_{\theta}, K)$
+\If {$T(s)$}
+\State Store $s,r,a$ in $D_{n}$
+\EndIf
+\State Store $s,r,a$ in $D_{r}$
+\State Store $s,g,T(s)$ in $D_{g}$
+\If {Time to update policy}
+\State sample $s^{r}, a^{r}, r^{r}$ from $D$
+\State $\hat Q \approx R + \gamma V_{\overline{\phi}}(S)$
+\State $Q^{min} = \min(Q_{\rho_{1}}(s^{r},a^{r}), Q_{\rho_{2}}(s^{r},a^{r}))$
+\State $\hat V \approx Q^{min} - \alpha H(\pi_{\theta} (A|S))$
+\State Run one step of Adam on $L^{Q}(s^{r}, q^{r}, r^{r})$
+\State Run one step of Adam on $L^{\pi}(s^{r})$
+\State Run one step of Adam on $L^{V}(s^{r})$
+\State   $\overline \phi =  q \overline \phi + (1-q)\phi$
+\EndIf
+\If {Time to update gate}
+\State Run one step of Adam on $L^{G}$ using all samples in $D_{g}$
+\EndIf
+\EndFor
+\end{algorithmic}
+\end{algorithm}
 
 \section{Results}
 

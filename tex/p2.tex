@@ -79,54 +79,56 @@ The "mesh dimension" is the quantity extracted from the slope of the log log plo
 
 
 \begin{algorithm}
-\SetAlgoLined
+\begin{algorithmic}[1]
 %\KwResult{Mesh Table, Deterministic State Transition Matrix}
-\textbf{Input:} State set $S$, box size d. \\
-\textbf{Output:} Mesh size m.\\
-\textbf{Initialize:} Empty hash table M. \\
- \For{s $\in$ S}{
-    $\bar s  = \text{Normalize(s)} $ \\
-    key = round($\bar s$ / d)d \\
-    \eIf{s $\in$ M}{
-        M[key]++
-    }{
-        M[key]=1
-    }
-}
-\textbf{Return:} M
+\State \textbf{Input:} State set $S$, box size d.
+\State \textbf{Output:} Mesh size m.
+\State \textbf{Initialize:} Empty hash table M.
+ \For{s $\in$ S}
+    \State $\bar s  = \text{Normalize(s)} $
+    \State key = round($\bar s$ / d)d
+    \If{s $\in$ M}
+       \State  M[key]++
+    \Else
+        \State M[key]=1
+    \EndIf
+\EndFor
+\State \textbf{Return:} M
+\end{algorithmic}
 \caption{Create Box Mesh, see section \ref{sec:boxmsh}}
 \end{algorithm}
 
 
 \begin{algorithm}
-\SetAlgoLined
+\begin{algorithmic}[1]
 %\KwResult{Mesh Table, Deterministic State Transition Matrix}
-\textbf{Input:} State set $S$.\\
-\textbf{Output:} Mesh M. \\
-\textbf{Hyperparameters:} scaling factor f,  initial box size $d_{0}$. \\
-\textbf{Initialize:} Empty list of mesh sizes H, empty list of d values D. \\
-m = Size(CreateBoxMesh(S, $d_{0}$)) \\
-d = $d_{0}$ \\ 
-Append m to H, append d to D. \\
-\While{m $<$ size(S)}{
-    d = d/f \\ 
-    m = Size(CreateBoxMesh(S, d)) \\ 
-    Prepend m to H, prepend d to D. \\
-}
-\While{m $\neq$ 1}{
-    d = d*f \\ 
-    m = Size(CreateBoxMesh(S,d)) \\
-    Append m to H, append d to D. \\
-}
+\State \textbf{Input:} State set $S$ 
+\State \textbf{Output:} Mesh M.
+\State \textbf{Hyperparameters:} scaling factor f,  initial box size $d_{0}$.
+\State \textbf{Initialize:} Empty list of mesh sizes H, empty list of d values D.
+\State m = Size(CreateBoxMesh(S, $d_{0}$)) 
+\State d = $d_{0}$
+\State Append m to H, append d to D.
+\While{m $<$ size(S)}
+    \State d = d/f 
+    \State m = Size(CreateBoxMesh(S, d)) 
+    \State Prepend m to H, prepend d to D. 
+\EndWhile
+\While{m $\neq$ 1}
+    \State d = d*f  
+    \State m = Size(CreateBoxMesh(S,d)) 
+    \State Append m to H, append d to D. 
+\EndWhile
 
-X =  $\log$ d\\
-Y =  -$\log$ m
+\State X =  $\log$ d 
+\State Y =  -$\log$ m
 
 \textbf{Lower Mesh Dim:} fit Y = gX + b, \textbf{Return:} g \\
 \textbf{Upper Mesh Dim:} w = greatest slope in Y over X \textbf{Return:} w
 
 \caption{Compute Box Mesh Dimension, see section \ref{sec:boxdim}}
 \label{algo:mesh_dim}
+\end{algorithmic}
 \end{algorithm}
 
 
