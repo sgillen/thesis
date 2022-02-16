@@ -138,9 +138,9 @@
 Reinforcement learning has a long history, which I will tell you about at length.
 
 Now in recent years research into deep reinforcement has exploded, with many impressive results advancing the state of the art in many fields.
-It can solve a lot of cool problems: 
-    - Roboust Walking Robots \\ 
-    - Super human video game AI (starcraft, dota, atari) \\ 
+
+
+- Super human video game AI (starcraft, dota, atari) \\ 
     - Board Games (Go, Chess) (State of the art here ... \todo{Is it} \\ 
     - Object Manipulation (Rubics cube) \\ 
     
@@ -165,7 +165,7 @@ I take some steps to solve this
 
 
 %=== Chapter  ============================================
-\chapter{Background}
+\chapter{Background and Literature Review}
 %---  Section -------------------------
 \begin{section}{Reinforcement Learning}
 
@@ -247,6 +247,14 @@ In general, off policy algorithms tend to be more sample efficient, requiring le
 
 A Word on Model Based Reinforcement Learning:
     - Not covered here, but here's what it would be 
+
+
+\subsection{Literature Review}
+\todo{This should be merged into either the intro or the background}
+
+Probably the most impressive and famous examples have been in the realm of games. An early breakthrough was in 2015, when Mnih1 et. al. showed that DRL could play a wide range of Atari video games using deep reinforcement learning \cite{mnih2015humanlevel}. This is significant for two reasons, this first is that this is a very challenging problem, the agent is tasked to play the game using only pixles as input, and only the score of the game as output. Imagine you are the agent, you are handed an array of 12288 numbers (a 64x64 RGB image), asked to pick an action, and then given a score of zero. This repeats maybe 100 times and then you get a reward of one. Was is the action you picked at timestep 62? was it because entry 10456 had a large value at timestep 3? Figuring this out on it's own is impressive, and using the same algorithm to solve dozens of different games was even more impressive. In 2016 Alpha Go achieved super human performance in the game of Go, which no other approach has been able to do \cite{2017Natur.550..354S}. The same team later released Mu Zero, which surpassed Alpha Go and can also play shogi, chess, and a suite of Atari games, again at superhuman levels \cite{muzero2020}. 
+
+in which DRL has been used for physics-based character animation~\cite{2018-TOG-deepMimic}, and a wide variety of complex robotic tasks. This paper focuses primarily on applications in robotics. Continuous control problems in the context of robotics include controlling a 47 degree-of-freedom (DOF) humanoid to navigate various obstacles~\cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand~\cite{openai_learning_2018}, training the quadrupedal ANYmal robot to recover from falls~\cite{lee_robust_2019} \cite{hwangbo_learning_2019}, and teaching the bipedal Cassie robot to navigate stairs blindly~\cite{siekmann2021blind}. Recently I might even argue that DRL has taken over Boston dynamics in terms of robust walking with the recent work by ETH Zurich \cite{anymal2022}.
 
 
 \end{section}
