@@ -97,7 +97,7 @@
 	\input{tex/dedicate}%comment out if you don't want a dedication
 	\input{tex/acknowledgements}
 	%\input{tex/vitae}
-    \includepdf[pages=-]{sgillen_resume.pdf}
+    \includepdf[pages=-]{sgillen_CV.pdf}
 	\input{tex/abstract}
 	\tableofcontents
 \end{frontmatter}
@@ -170,6 +170,15 @@ I take some steps to solve this
 \begin{section}{Reinforcement Learning}
 
 
+
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{fig/dissertation/RL_sutton.png}
+    \caption{The classic picture from Sutton and Barto that everyone seems to steal without attribution}
+    \label{fig:r}
+\end{figure}
+
 What is reinforcement learning? Let's introduce the basic terminology first, we will formalize this later. An agent takes actions in an environment in order to maximize a reward. The environment is described by a state, which can be observed (sometimes only partially) by the agent. One example might be a chess playing program, the state is the position of the pieces on the board, the action the their move on the current term, and their reward is a one when they win the game and a zero otherwise. Or maybe the agent is a robot, whose states are joint angles and velocities, whos actions are motor commands, and whos reward function is their forward velocity. Another example might be a motor inside that very robot, it's state might include a motor command and a measurement of the current motor position, and it's output might be a voltage signal.
 
 As these examples hopefully illustrate, reinforcement learning is extremely general, and can and has been applied to a myriad of problems across a number of domains. 
@@ -226,7 +235,47 @@ One of the most successful and popular function approximators, especially in rec
 
 Only a few years later, we saw a big breakthrough, a team was able to train neural networks to play Atari games at a superhuman level. The input was the raw pixel values from the game, and the reward is the score from the game. This is remarkable for a number of reasons, but it's cool that the same algorithm was able to work successfully across a wide variety of games, which you might think require very different strategies. \cite{mnih2015humanlevel}
 
+
+% \begin{figure}[!htb]
+%     \centering
+%     \includegraphics[width=.2\linewidth]{fig/dissertation/Atari.png}
+%     \label{fig:atari}
+% \end{figure}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{fig/dissertation/Go.png}
+    \caption{\cite{2017Natur.550..354S}}
+    \label{fig:alphago}
+\end{figure}
+
+
 \subsection{Locomotion and Control with Reinforcement Learning}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=.6\linewidth]{fig/dissertation/humanoid_running.png}
+    \caption{\cite{heess_emergence_2017}}
+    \label{fig:deepmind_running}
+\end{figure}
+
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=.6\linewidth]{fig/dissertation/rubics_cube.png}
+    \caption{\cite{openai_learning_2018}}
+    \label{fig:rubics_cube}
+\end{figure}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=.6\linewidth]{fig/dissertation/anymal_grid.png}
+    \caption{\cite{anymal2022}}
+    \label{fig:anymal_grid}
+\end{figure}
+
+
+
 
 There are sort of two schools of thought when it comes to RL for locomotion. There's RL for the animation of physics based characters, which is mostly useful in the context of movies or video games. This is mostly centered in michael v. panns group (\todo{probably}) at 
 Then there is everyone else, who is in it for robotics, or just for pure RL maybe ... 
