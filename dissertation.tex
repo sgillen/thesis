@@ -4,23 +4,21 @@
 
 %--- Packages ---------------------------------------------------------
 
+\makeatletter
+%\let\normalsize\relax
+\let\@currsize\normalsize
+\makeatother
 
 \usepackage[utf8]{inputenc}
-
 \usepackage{multirow}
 
 \usepackage{graphicx} % Required to insert images
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage[english]{babel}
-%\usepackage[ruled,vlined]{algorithm2e}
 \usepackage{color}
 
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
-%\usepackage{algorithmicx}  
-%\usepackage[algo2e]{algorithm2e} 
-%\usepackage{algpseudocode}
 
 \usepackage{csquotes}
 \DeclareMathOperator*{\argmax}{arg\,max}
@@ -44,15 +42,17 @@
 \usepackage{tabu}
 \usepackage{multirow}
 
-\usepackage[english]{babel}
 
 \usepackage{wrapfig}
 \usepackage{lipsum}
 
 \usepackage{breqn}
 \usepackage{pdfpages}
-%\usepackage{caption}
-\usepackage{subfigure} %(Subfigure package clashes with another package)
+
+\usepackage[english]{babel}
+
+\usepackage{caption}
+\usepackage{subcaption}
 
 
 
@@ -84,6 +84,8 @@
 %---Set Margins ------------------------------------------------------
 \setlength\oddsidemargin{0.25 in} \setlength\evensidemargin{0.25 in} \setlength\textwidth{6.25 in} \setlength\textheight{8.50 in}
 \setlength\footskip{0.25 in} \setlength\topmargin{0 in} \setlength\headheight{0.25 in} \setlength\headsep{0.25 in}
+
+
 
 %%%---DOCUMENT---%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
@@ -133,7 +135,7 @@
 \renewcommand{\footrulewidth}{0pt}}
 
 %=== Introduction ============================================
-\chapter{Introduction}
+\chapter{Introduction and Literature Review}
 
 Reinforcement learning has a long history, which I will tell you about at length.
 
@@ -162,78 +164,8 @@ I take some steps to solve this
     I did some reward post processing on a Markov chain thing
     Uhh anyway ... 
     
-
-
-%=== Chapter  ============================================
-\chapter{Background and Literature Review}
-%---  Section -------------------------
-\begin{section}{Reinforcement Learning}
-
-
-
-
-\begin{figure}[!htb]
-    \centering
-    \includegraphics[width=\linewidth]{fig/dissertation/RL_sutton.png}
-    \caption{The classic picture from Sutton and Barto that everyone seems to steal without attribution}
-    \label{fig:r}
-\end{figure}
-
-What is reinforcement learning? Let's introduce the basic terminology first, we will formalize this later. An agent takes actions in an environment in order to maximize a reward. The environment is described by a state, which can be observed (sometimes only partially) by the agent. One example might be a chess playing program, the state is the position of the pieces on the board, the action the their move on the current term, and their reward is a one when they win the game and a zero otherwise. Or maybe the agent is a robot, whose states are joint angles and velocities, whos actions are motor commands, and whos reward function is their forward velocity. Another example might be a motor inside that very robot, it's state might include a motor command and a measurement of the current motor position, and it's output might be a voltage signal.
-
-As these examples hopefully illustrate, reinforcement learning is extremely general, and can and has been applied to a myriad of problems across a number of domains. 
-
-A history of reinforcement learning... Do I need this? 
-I can just present the state of the art here to compare to what I did. And I can do that in chronological order
-
-Definition and Problem Statement, maybe some early victories
-\todo{Also need to indtroduce Q function and Value functions}
-
-In reinforcement learning, the goal is to train an agent, acting in an environment, to maximize some reward function. The environment is a discrete time dynamical system described by state $s_{t} \in \mathbb{R}^{n}$ and the current action $a_{t} \in \mathbb{R}^{b}$. an evolution function $f: \mathbb{R}^{n} \times \mathbb{R}^{b} \rightarrow \mathbb{R}^{n}$ takes as input the current state and action, and outputs the state at time t+1:
-
-
-\begin{equation}
-s_{t+1}= f(s_{t},a_{t})
-\end{equation} 
-
-The controller is the function we are learning $g: \mathbb{R}^{n} \times \mathbb{R}^{\norm{\theta}} \rightarrow \mathbb{R}^{m}$ such that:
-
-\begin{equation}
-a_{t} = g(s_{t}, \theta)
-\end{equation} 
-
-The goal is to maximize a reward function $r : \mathbb{R}^{n} \times \mathbb{R}^{m} \times \mathbb{R}^{n} \rightarrow \mathbb{R}$. We consider the finite time undiscounted reward case. The objective function then is:
-
-\begin{equation} 
-R(\theta) =  \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) 
-\end{equation}
-
-
-Then REINFORCE
-
-REINFORCE is the OG policy gradient algorithm, it's pretty old and influential. \todo{I need to introduce policy gradients here I guess}
-
-Then some stuff I don't care about
-
-\subsection{Deep Reinforcement Learning}
-Sometimes around 2012 or so, deep neural networks saw a resurgence of interest in the space of supervised learning. This is usually attributed to the success of the work of Alex Krizhevsky who showed that convolutional neural networks were extremely effective at image classification \cite{NIPS2012_c399862d}. 
-
-\subsubsection{Function Approximators and Neural Networks}
-
-It's worth taking a second here and talking about so called function approximators and neural networks, because otherwise the rest of this paper won't make any sense. A function approximator is really just a function which has tunable parameter in addition to inputs and outputs. In controls or reinforcement learning, we usually just call these "parameterized policies". Let's look at a simple example, third order polynomial with coefficients $a_{0}$, $a_{1}$, and $a_{2}$
-
-\begin{equation}
-\label{eq:poly}
-    y = a_{0} + a_{1}x + a_{2}x^{2}
-\end{equation}
-
-At risk of belaboring the point, the equation above has an input (x), and output(y) but also parameters($a$). In function approximation, we typically have data from an unknown function, often sampled from a physical system, and we wish to solve for parameters such that our function approximator best matches the output of the target function. 
-
-One of the most successful and popular function approximators, especially in recent years, have been neural networks. These come in many flavors, multilayers perecptrons (MLPs), convolutional neural networks (CNNs), long short term memories (LSTM) and Gated Recurrent Units (GRUs).
-
-\todo{should I talk about these in detail?? }
-
-Only a few years later, we saw a big breakthrough, a team was able to train neural networks to play Atari games at a superhuman level. The input was the raw pixel values from the game, and the reward is the score from the game. This is remarkable for a number of reasons, but it's cool that the same algorithm was able to work successfully across a wide variety of games, which you might think require very different strategies. \cite{mnih2015humanlevel}
+    
+    Only a few years later, we saw a big breakthrough, a team was able to train neural networks to play Atari games at a superhuman level. The input was the raw pixel values from the game, and the reward is the score from the game. This is remarkable for a number of reasons, but it's cool that the same algorithm was able to work successfully across a wide variety of games, which you might think require very different strategies. \cite{mnih2015humanlevel}
 
 
 % \begin{figure}[!htb]
@@ -249,8 +181,6 @@ Only a few years later, we saw a big breakthrough, a team was able to train neur
     \label{fig:alphago}
 \end{figure}
 
-
-\subsection{Locomotion and Control with Reinforcement Learning}
 
 \begin{figure}[!htb]
     \centering
@@ -275,38 +205,23 @@ Only a few years later, we saw a big breakthrough, a team was able to train neur
 \end{figure}
 
 
+\cite{Carpanese2022} Nucluear fusion
 
-
-There are sort of two schools of thought when it comes to RL for locomotion. There's RL for the animation of physics based characters, which is mostly useful in the context of movies or video games. This is mostly centered in michael v. panns group (\todo{probably}) at 
-Then there is everyone else, who is in it for robotics, or just for pure RL maybe ... 
-
-Google brain, deepmind, openAI, Berkely AI lab, these are the most prolific labs in this space. 
-
-Still need to introduce openAI gym, and dm control suite...
-And also talk about the sort of two schools of thought, character animation and robotic control. 
-
-Here's where we get to the part that introduced me to the topic. In 2017 Deep Mind released some work regarding locomotion policies in simulated environments, they look a little silly, but I thought it was mind blowing at the time, since I was working with a simpler system, and couldn't get it to work at. all. 
-
-Then Deep Mind Mujoco, PPO, Lots of stuff
-    
-    
-We can further divide up DRL into on policy and off policy algorithms. On policy algorithms use only data obtained with the under the current policy to make policy updates. After an update it essentially throws out the data obtained so far and starts afresh. Examples of this include the classic REINFORCE, A2C, TPRO and PPO. Off policy algorithms by contrast use data obtained by previous policies to continue updating. This usually takes the form of a "replay buffer" which stores state, action, and reward tuples obtained so far during training. These tuples can then be used to update the current policy. Off policy algorithms are often a variant of Q learning, since the Q function in reinforcement learning  does not require the current action, it is well suited to off policy learning. 
-
-In general, off policy algorithms tend to be more sample efficient, requiring less samples to obtain a similar reward level. On policy algorithms are less sample efficient, but do tend to be more stable, getting more consistent rewards across random seeds.
-
-A Word on Model Based Reinforcement Learning:
-    - Not covered here, but here's what it would be 
-
-
-\subsection{Literature Review}
-\todo{This should be merged into either the intro or the background}
 
 Probably the most impressive and famous examples have been in the realm of games. An early breakthrough was in 2015, when Mnih1 et. al. showed that DRL could play a wide range of Atari video games using deep reinforcement learning \cite{mnih2015humanlevel}. This is significant for two reasons, this first is that this is a very challenging problem, the agent is tasked to play the game using only pixles as input, and only the score of the game as output. Imagine you are the agent, you are handed an array of 12288 numbers (a 64x64 RGB image), asked to pick an action, and then given a score of zero. This repeats maybe 100 times and then you get a reward of one. Was is the action you picked at timestep 62? was it because entry 10456 had a large value at timestep 3? Figuring this out on it's own is impressive, and using the same algorithm to solve dozens of different games was even more impressive. In 2016 Alpha Go achieved super human performance in the game of Go, which no other approach has been able to do \cite{2017Natur.550..354S}. The same team later released Mu Zero, which surpassed Alpha Go and can also play shogi, chess, and a suite of Atari games, again at superhuman levels \cite{muzero2020}. 
 
 in which DRL has been used for physics-based character animation~\cite{2018-TOG-deepMimic}, and a wide variety of complex robotic tasks. This paper focuses primarily on applications in robotics. Continuous control problems in the context of robotics include controlling a 47 degree-of-freedom (DOF) humanoid to navigate various obstacles~\cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand~\cite{openai_learning_2018}, training the quadrupedal ANYmal robot to recover from falls~\cite{lee_robust_2019} \cite{hwangbo_learning_2019}, and teaching the bipedal Cassie robot to navigate stairs blindly~\cite{siekmann2021blind}. Recently I might even argue that DRL has taken over Boston dynamics in terms of robust walking with the recent work by ETH Zurich \cite{anymal2022}.
 
 
-\end{section}
+    
+
+
+%=== Chapter  ============================================
+\chapter{Background}
+%---  Section -------------------------
+
+\input{tex/background}
+
 
 %=== Chapter ==============================================
 \chapter{Switching}
@@ -314,13 +229,11 @@ in which DRL has been used for physics-based character animation~\cite{2018-TOG-
 \input{tex/p1.tex}
 
 %=== Chapter   ============================================
-\chapter{Mesh Dimensions}
+\chapter{Reward Post Processing and Mesh Dimensions}
 
 \input{tex/p2.tex}
 
 \input{tex/p3.tex}
-
-\chapter{Fine Tuning}
 
 \input{tex/p4.tex}
 
@@ -328,7 +241,7 @@ in which DRL has been used for physics-based character animation~\cite{2018-TOG-
 
 \input{tex/p5.tex}
 
-\Chapter{Conclusions}
+\chapter{Conclusions}
 
 
 

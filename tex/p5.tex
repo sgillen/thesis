@@ -50,8 +50,8 @@
 %Telephone: (800) 555--1212, Fax: (888) 555--1212}
 %\authorblockA{\authorrefmark{4}Tyrell Inc., 123 Replicant Street, Los Angeles, California 90210--4321}}
 
-\section{Abstract}
-New advances in simulation have resulted in physics engines with fully differentiable dynamics. This opens up new possibilities for reinforcement learning, namely the possibility of using analytic gradients for policy search. However these gradients have proven to be very challenging to use in practice, and the performance of algorithms based on these gradients lag behind algorithms which do not make use of these algorithms at all. In this paper we introduce an algorithm we call Cross Entropy Analytic Policy Gradients, an algorithm which improves on the performance of Analytic Policy Gradients, and which outperforms state of the art model free reinforcement learning for certain systems which model free algorithms historically struggle on. This work represents a step towards reinforcement learning algorithms that can productively use analytic gradients for policy search. 
+% \section{Abstract}
+% New advances in simulation have resulted in physics engines with fully differentiable dynamics. This opens up new possibilities for reinforcement learning, namely the possibility of using analytic gradients for policy search. However these gradients have proven to be very challenging to use in practice, and the performance of algorithms based on these gradients lag behind algorithms which do not make use of these algorithms at all. In this paper we introduce an algorithm we call Cross Entropy Analytic Policy Gradients, an algorithm which improves on the performance of Analytic Policy Gradients, and which outperforms state of the art model free reinforcement learning for certain systems which model free algorithms historically struggle on. This work represents a step towards reinforcement learning algorithms that can productively use analytic gradients for policy search. 
 
 \section{Introduction}
 
@@ -101,7 +101,7 @@ Typically, gradients for f, the environment has been unavailable. This makes it 
 
 These new differentiable simulators offer us analytic gradients through f, thus we can analytically use the update rule from \ref{eq:vapg}. We will refer to any technique that uses this update rule directly an Analytic Policy Gradient Method.
 
-This may seem to be great news, and that we can finally use fast, gradient based methods for controller design. However, in practice these gradients have proven extremely challenging to use. Part of the problem is inherent to back propagation through time (BPTT), which is necessary to compute the gradient of the reward function. Long chains of BPTT have long been known to cause exploding or vanishing gradients, leading to difficulty in learning \cite{279181}. Recently Metz et. al. \citet{metz2021gradients} offer some exposition on the challenges of using the analytic gradients offered by these new rigid body simulators. That work highlights that they have found a common chaos based failure mode, which we will elaborate on later.
+This may seem to be great news, and that we can finally use fast, gradient based methods for controller design. However, in practice these gradients have proven extremely challenging to use. Part of the problem is inherent to back propagation through time (BPTT), which is necessary to compute the gradient of the reward function. Long chains of BPTT have long been known to cause exploding or vanishing gradients, leading to difficulty in learning \cite{279181}. Recently Metz et. al. \cite{metz2021gradients} offer some exposition on the challenges of using the analytic gradients offered by these new rigid body simulators. That work highlights that they have found a common chaos based failure mode, which we will elaborate on later.
 
 
 Yet another difficulty are severe local maxima. Local maxima are a common problem in all of deep learning, but it is apparent that using APG for reinforcement learning with rigid body systems is especially prone to falling into these extrema. The authors of Tiny Differentiable Simulator \cite{heiden2021neuralsim} agree, they used an optimization technique called Parallel Basin Hopping to circumvent this in the context of parameter identification.  
@@ -172,7 +172,7 @@ There are also several methods that combine a zeroth order optimizer with a loca
 
 \begin{figure}[!htb]
  
-    \includegraphics[width=.75\linewidth]{paper-template-latex/figs/rss_system_diagram.png}
+    \includegraphics[width=.75\linewidth]{fig/analytic/rss_system_diagram.png}
     \caption{System Diagram \todo{Probably Don't Need this}}
   
 \end{figure}
@@ -270,7 +270,7 @@ In \cite{metz2021gradients} they show that the reward landscape of the Ant syste
 
 \begin{figure}[!htb]
         \centering
-        \includegraphics[width=.8\linewidth]{paper-template-latex/figs/reward_landscape.png}
+        \includegraphics[width=.8\linewidth]{fig/analytic/reward_landscape.png}
         \caption{Some projections of the reward landscape for the acrobot. We start with a random policy, and then sample a random vector from the space of policy weights. Each line represents the reward sum for one random direction through policy space
         \todo{Probably need to make the description clearer, and also I think it's an ugly plot}}
 \end{figure}
@@ -377,13 +377,13 @@ We combine these two algorithms as follows. Start with initial policy weight $\t
 \begin{figure*}[!h]
   \centering
   \begin{subfigure}[b]{0.32\linewidth}
-    \includegraphics[width=\linewidth]{paper-template-latex/figs/pendulum.png}
+    \includegraphics[width=\linewidth]{fig/analytic/pendulum.png}
   \end{subfigure}
   \begin{subfigure}[b]{0.32\linewidth}
-  \includegraphics[width=\linewidth]{paper-template-latex/figs/acrobot.png}
+  \includegraphics[width=\linewidth]{fig/analytic/acrobot.png}
   \end{subfigure}
   \begin{subfigure}[b]{0.32\linewidth}
-      \includegraphics[width=\linewidth]{paper-template-latex/figs/double_pendulum.png}
+      \includegraphics[width=\linewidth]{fig/analytic/double_pendulum.png}
   \end{subfigure}
   \caption{Reward curves for CE-APG}
   \label{fig:reward_curves}
@@ -432,20 +432,20 @@ What does -4000 vs -1500 actually look like, well, here's a sample from the acro
 \begin{figure}[!htb]
 \captionsetup[subfigure]{labelformat=empty}
         \centering
-        \subfloat[]{\label{sublable1}\includegraphics[width=0.6\linewidth]{paper-template-latex/figs/ce-apg_acrobot.png}} \\
-        \subfloat[]{\label{sublable2}\includegraphics[width=0.6\linewidth]{paper-template-latex/figs/ppo_acrobot.png}}
+        \subfloat[]{\label{sublable1}\includegraphics[width=0.6\linewidth]{fig/analytic/ce-apg_acrobot.png}} \\
+        \subfloat[]{\label{sublable2}\includegraphics[width=0.6\linewidth]{fig/analytic/ppo_acrobot.png}}
         \caption{Best performing seeds for CE-APG vs PPO on the Acrobot. As we can see CE-APG stabalizes the system at the equilibrium, whereas \todo{Insert whichever algorithm} does not \todo{TODO make these one matplotlib plot to get rid of excessive whitespace, and make the legends line up etc}}
 \end{figure}
 % \begin{figure}[!htb]
  
-%     \includegraphics[width=.6\linewidth]{paper-template-latex/figs/ce-apg_acrobot.png}
+%     \includegraphics[width=.6\linewidth]{fig/analytic/ce-apg_acrobot.png}
 %     \caption{}
   
 % \end{figure}
 
 % \begin{figure}[!htb]
  
-%     \includegraphics[width=.6\linewidth]{paper-template-latex/figs/ppo_acrobot.png}
+%     \includegraphics[width=.6\linewidth]{fig/analytic/ppo_acrobot.png}
 %     \caption{}
   
 % \end{figure}
@@ -459,8 +459,8 @@ As we can see, the CE-APG found a way to swing the system up into it's equilbrui
 % \begin{figure}[!htb]
 % \captionsetup[subfigure]{labelformat=empty}
 %         \centering
-%         \subfloat[]{\label{sublable1}\includegraphics[width=0.6\linewidth]{paper-template-latex/figs/ce-apg_acrobot.png}} \\
-%         \subfloat[]{\label{sublable2}\includegraphics[width=0.6\linewidth]{paper-template-latex/figs/ppo_acrobot.png}}
+%         \subfloat[]{\label{sublable1}\includegraphics[width=0.6\linewidth]{fig/analytic/ce-apg_acrobot.png}} \\
+%         \subfloat[]{\label{sublable2}\includegraphics[width=0.6\linewidth]{fig/analytic/ppo_acrobot.png}}
 %         \caption{Best performing seeds for CE-APG vs PPO on the Acrobot. As we can see CE-APG stabalizes the system at the equilibrium, whereas PPO does not}
 % \end{figure}
 

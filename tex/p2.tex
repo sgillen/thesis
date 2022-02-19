@@ -15,21 +15,21 @@
 
 
 \begin{figure}[h!]
-%%   \centering
-%%   \begin{subfigure}[b]{0.32\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/acc_fractal/Fractaldimensionexamplebw.png}
-%%     \caption{Scaling in different dimensions}
-%%   \end{subfigure}
-%%   \begin{subfigure}[b]{0.32\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/acc_fractal/Snow_Mesh_Example.png}
-%%     \caption{A non uniform mesh}
-%%   \end{subfigure}
-%%   \begin{subfigure}[b]{0.32\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/acc_fractal/Snow_LineFitAnn.png}
-%%     \caption{Calculating the mesh dimension}
-%%   \end{subfigure}
-%%   \caption{Image credit for sub-figure a: \cite{BrendanRyan/Publicdomain2020}, image credit for sub-figures b and c: \cite{Talelepush}}
-%%   \label{fig:fracdim}
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/acc_fractal/Fractaldimensionexamplebw.png}
+    \caption{Scaling in different dimensions}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/acc_fractal/Snow_Mesh_Example.png}
+    \caption{A non uniform mesh}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/acc_fractal/Snow_LineFitAnn.png}
+    \caption{Calculating the mesh dimension}
+  \end{subfigure}
+  \caption{Image credit for sub-figure a: \cite{BrendanRyan/Publicdomain2020}, image credit for sub-figures b and c: \cite{Talelepush}}
+  \label{fig:fracdim}
 \end{figure}
 
 % \begin{wrapfigure}{L}{0.3\textwidth}
@@ -164,23 +164,23 @@ where $D_{t}$ is the topological dimension, equal to the number of states in the
 We examine a subset of the popular OpenAI Mujoco locomotion environments introduced in \cite{1606.01540}. In particular, we evaluate our work on HalfCheetah-v2, Hopper-v2, and Walker2d-v2. These environments were chosen because they have a relatively high dimensionality (11-17 DOF), yet we believe can be made feasible for meshing based approaches. The state space consists of all joint / base positions and velocities, with the x (the "forward") position being held out, because we want a policy that is invariant along that dimension.
 
 
-% \begin{figure}
-%   \centering
-%   \begin{subfigure}[b]{0.32\textwidth}
-%     \includegraphics[width=\textwidth]{fig/corl2020/cheetah_crop.png}
-%     \caption{HalfCheetah-v2}
-%   \end{subfigure}
-%   \begin{subfigure}[b]{0.32\textwidth}
-%     \includegraphics[width=\textwidth]{fig/corl2020/hopper_crop.png}
-%     \caption{Hopper-v2}
-%   \end{subfigure}
-%   \begin{subfigure}[b]{0.32\textwidth}
-%     \includegraphics[width=\textwidth]{fig/corl2020/walker2d_crop.png}
-%     \caption{Walker2d-v2}
-%   \end{subfigure}
-%   \caption{The Mujoco locomotion environments}
-%   \label{fig:envs}
-% \end{figure}
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/cheetah_crop.png}
+    \caption{HalfCheetah-v2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/hopper_crop.png}
+    \caption{Hopper-v2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/walker2d_crop.png}
+    \caption{Walker2d-v2}
+  \end{subfigure}
+  \caption{The Mujoco locomotion environments}
+  \label{fig:envs}
+\end{figure}
 
 
 \subsection{Augmented Random Search}
@@ -220,21 +220,21 @@ To keep things simple, we wanted to find one set of hyper parameters for all env
 \subsection{Mesh Dimension Postprocessors}
 
 \begin{figure}[!htb]
-%%   \centering
-%%   \begin{subfigure}[b]{0.32\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/mesh4_curves/cheetah.png}
-%%     \caption{HalfCheetah}
-%%   \end{subfigure}
-%%   \begin{subfigure}[b]{0.32\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/mesh4_curves/hopper.png}
-%%     \caption{Hopper}
-%%   \end{subfigure}
-%%   \begin{subfigure}[b]{0.32\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/mesh4_curves/walker.png}
-%%     \caption{Walker}
-%%   \end{subfigure}
-%%   \caption{Reward curves for mesh dimension postproccesor runs.}
-%%   \label{fig:mesh_rews}
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/mesh4_curves/cheetah.png}
+    \caption{HalfCheetah}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/mesh4_curves/hopper.png}
+    \caption{Hopper}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/mesh4_curves/walker.png}
+    \caption{Walker}
+  \end{subfigure}
+  \caption{Reward curves for mesh dimension postproccesor runs.}
+  \label{fig:mesh_rews}
 \end{figure}
 
 \begin{table}[!htb]
@@ -493,21 +493,21 @@ The \textbf{madogram} estimator is the special case of \eqref{eq:var} where p = 
 
 
 \begin{figure}[!htb]
-%%   \centering
-%%   \begin{subfigure}[b]{0.32\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/cheetah.png}
-%%     \caption{HalfCheetah}
-%%   \end{subfigure}
-%%   \begin{subfigure}[b]{0.32\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/hopper.png}
-%%     \caption{Hopper}
-%%   \end{subfigure}
-%%   \begin{subfigure}[b]{0.32\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/walker.png}
-%%     \caption{Walker}
-%%   \end{subfigure}
-%%   \caption{Reward curves for the variation postprocessors}
-%%   \label{fig:rews}
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/cheetah.png}
+    \caption{HalfCheetah}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/hopper.png}
+    \caption{Hopper}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/walker.png}
+    \caption{Walker}
+  \end{subfigure}
+  \caption{Reward curves for the variation postprocessors}
+  \label{fig:rews}
 
 \end{figure}
 \begin{table}
@@ -547,21 +547,21 @@ Figure \ref{fig:curves} illustrates two examples of the curves used to compute t
 
 
 \begin{figure}
-%%   \centering
-%%   \begin{subfigure}[b]{0.45\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/meshdim.png}
-%%     \caption{High resolution curve of a well behaved policy}
-%%   \end{subfigure}
-%% %   \begin{subfigure}[b]{0.32\textwidth}
-%% %     \includegraphics[width=\textwidth]{fig/corl2020/meshdimhand.png}
-%% %     \caption{Hopper-v2}
-%% %   \end{subfigure}
-%%   \begin{subfigure}[b]{0.45\textwidth}
-%%     \includegraphics[width=\textwidth]{fig/corl2020/meshdimreal.png}
-%%     \caption{Run time resolution curve of a typical policy}
-%%   \end{subfigure}
-%%   \caption{Mesh curve and mesh dimension examples}
-%%   \label{fig:curves}
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/meshdim.png}
+    \caption{High resolution curve of a well behaved policy}
+  \end{subfigure}
+%   \begin{subfigure}[b]{0.32\textwidth}
+%     \includegraphics[width=\textwidth]{fig/corl2020/meshdimhand.png}
+%     \caption{Hopper-v2}
+%   \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/meshdimreal.png}
+    \caption{Run time resolution curve of a typical policy}
+  \end{subfigure}
+  \caption{Mesh curve and mesh dimension examples}
+  \label{fig:curves}
 \end{figure}
 
 

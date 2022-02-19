@@ -1,0 +1,82 @@
+\section{Reinforcement Learning}
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{fig/dissertation/RL_sutton.png}
+    \caption{The classic picture from Sutton and Barto that everyone seems to steal without attribution}
+    \label{fig:r}
+\end{figure}
+
+What is reinforcement learning? Let's introduce the basic terminology first, we will formalize this later. An agent takes actions in an environment in order to maximize a reward. The environment is described by a state, which can be observed (sometimes only partially) by the agent. One example might be a chess playing program, the state is the position of the pieces on the board, the action the their move on the current term, and their reward is a one when they win the game and a zero otherwise. Or maybe the agent is a robot, whose states are joint angles and velocities, whos actions are motor commands, and whos reward function is their forward velocity. Another example might be a motor inside that very robot, it's state might include a motor command and a measurement of the current motor position, and it's output might be a voltage signal.
+
+As these examples hopefully illustrate, reinforcement learning is extremely general, and can and has been applied to a myriad of problems across a number of domains. 
+
+A history of reinforcement learning... Do I need this? 
+I can just present the state of the art here to compare to what I did. And I can do that in chronological order
+
+Definition and Problem Statement, maybe some early victories
+\todo{Also need to indtroduce Q function and Value functions}
+
+In reinforcement learning, the goal is to train an agent, acting in an environment, to maximize some reward function. The environment is a discrete time dynamical system described by state $s_{t} \in \mathbb{R}^{n}$ and the current action $a_{t} \in \mathbb{R}^{b}$. an evolution function $f: \mathbb{R}^{n} \times \mathbb{R}^{b} \rightarrow \mathbb{R}^{n}$ takes as input the current state and action, and outputs the state at time t+1:
+
+
+\begin{equation}
+s_{t+1}= f(s_{t},a_{t})
+\end{equation} 
+
+The controller is the function we are learning $g: \mathbb{R}^{n} \times \mathbb{R}^{\norm{\theta}} \rightarrow \mathbb{R}^{m}$ such that:
+
+\begin{equation}
+a_{t} = g(s_{t}, \theta)
+\end{equation} 
+
+The goal is to maximize a reward function $r : \mathbb{R}^{n} \times \mathbb{R}^{m} \times \mathbb{R}^{n} \rightarrow \mathbb{R}$. We consider the finite time undiscounted reward case. The objective function then is:
+
+\begin{equation} 
+R(\theta) =  \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) 
+\end{equation}
+
+
+Then REINFORCE
+
+REINFORCE is the OG policy gradient algorithm, it's pretty old and influential. \todo{I need to introduce policy gradients here I guess}
+
+Then some stuff I don't care about
+
+\subsection{Deep Reinforcement Learning}
+Sometimes around 2012 or so, deep neural networks saw a resurgence of interest in the space of supervised learning. This is usually attributed to the success of the work of Alex Krizhevsky who showed that convolutional neural networks were extremely effective at image classification \cite{NIPS2012_c399862d}. 
+
+\subsubsection{Function Approximators and Neural Networks}
+
+It's worth taking a second here and talking about so called function approximators and neural networks, because otherwise the rest of this paper won't make any sense. A function approximator is really just a function which has tunable parameter in addition to inputs and outputs. In controls or reinforcement learning, we usually just call these "parameterized policies". Let's look at a simple example, third order polynomial with coefficients $a_{0}$, $a_{1}$, and $a_{2}$
+
+\begin{equation}
+\label{eq:poly}
+    y = a_{0} + a_{1}x + a_{2}x^{2}
+\end{equation}
+
+At risk of belaboring the point, the equation above has an input (x), and output(y) but also parameters($a$). In function approximation, we typically have data from an unknown function, often sampled from a physical system, and we wish to solve for parameters such that our function approximator best matches the output of the target function. 
+
+One of the most successful and popular function approximators, especially in recent years, have been neural networks. These come in many flavors, multilayers perecptrons (MLPs), convolutional neural networks (CNNs), long short term memories (LSTM) and Gated Recurrent Units (GRUs).
+
+\todo{should I talk about these in detail?? }
+
+
+There are sort of two schools of thought when it comes to RL for locomotion. There's RL for the animation of physics based characters, which is mostly useful in the context of movies or video games. This is mostly centered in michael v. panns group (\todo{probably}) at 
+Then there is everyone else, who is in it for robotics, or just for pure RL maybe ... 
+
+Google brain, deepmind, openAI, Berkely AI lab, these are the most prolific labs in this space. 
+
+Still need to introduce openAI gym, and dm control suite...
+And also talk about the sort of two schools of thought, character animation and robotic control. 
+
+Here's where we get to the part that introduced me to the topic. In 2017 Deep Mind released some work regarding locomotion policies in simulated environments, they look a little silly, but I thought it was mind blowing at the time, since I was working with a simpler system, and couldn't get it to work at. all. 
+
+Then Deep Mind Mujoco, PPO, Lots of stuff
+    
+    
+We can further divide up DRL into on policy and off policy algorithms. On policy algorithms use only data obtained with the under the current policy to make policy updates. After an update it essentially throws out the data obtained so far and starts afresh. Examples of this include the classic REINFORCE, A2C, TPRO and PPO. Off policy algorithms by contrast use data obtained by previous policies to continue updating. This usually takes the form of a "replay buffer" which stores state, action, and reward tuples obtained so far during training. These tuples can then be used to update the current policy. Off policy algorithms are often a variant of Q learning, since the Q function in reinforcement learning  does not require the current action, it is well suited to off policy learning. 
+
+In general, off policy algorithms tend to be more sample efficient, requiring less samples to obtain a similar reward level. On policy algorithms are less sample efficient, but do tend to be more stable, getting more consistent rewards across random seeds.
+
+A Word on Model Based Reinforcement Learning:
+    - Not covered here, but here's what it would be 
