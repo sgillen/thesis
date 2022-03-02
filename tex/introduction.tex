@@ -1,0 +1,84 @@
+
+Reinforcement learning can trace its roots to theories about animal cognition 
+
+""
+According to R. S. Woodworth (1938) the idea of trial-and-error learning goes as far back as the 1850s to Alexander Bain’s discussion of learning by
+“groping and experiment” and more explicitly to the British ethologist and psychologist Conway Lloyd Morgan’s 1894 use of the term to describe his observations of animal behavior. Perhaps the first to succinctly express the essence of trial-and-error learning as a principle of learning was Edward Thorndike:
+""
+
+These ideas have been applied to artificial intelligence as far back as 1933, where \todo{someone} made a maze solver robots using physical switches. 
+
+Now in recent years research into deep reinforcement has exploded, with many impressive results advancing the state of the art in many fields.
+
+
+- Super human video game AI (starcraft, dota, atari) \\ 
+    - Board Games (Go, Chess) (State of the art here ... In chess alpha zero crushes the latest version of stockfish, the strongest traditional chess engine, which itself crushes the best human grandmasters.
+    - Object Manipulation (Rubics cube) \\ 
+    
+
+    
+    Only a few years later, we saw a big breakthrough, a team was able to train neural networks to play Atari games at a superhuman level. The input was the raw pixel values from the game, and the reward is the score from the game. This is remarkable for a number of reasons, but it's cool that the same algorithm was able to work successfully across a wide variety of games, which you might think require very different strategies. \cite{mnih2015humanlevel}
+
+
+% \begin{figure}[!htb]
+%     \centering
+%     \includegraphics[width=.2\linewidth]{fig/dissertation/Atari.png}
+%     \label{fig:atari}
+% \end{figure}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{fig/dissertation/Go.png}
+    \caption{\cite{2017Natur.550..354S}}
+    \label{fig:alphago}
+\end{figure}
+
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=.6\linewidth]{fig/dissertation/humanoid_running.png}
+    \caption{\cite{heess_emergence_2017}}
+    \label{fig:deepmind_running}
+\end{figure}
+
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=.6\linewidth]{fig/dissertation/rubics_cube.png}
+    \caption{\cite{openai_learning_2018}}
+    \label{fig:rubics_cube}
+\end{figure}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=.6\linewidth]{fig/dissertation/anymal_grid.png}
+    \caption{\cite{anymal2022}}
+    \label{fig:anymal_grid}
+\end{figure}
+
+
+\cite{Carpanese2022} Nucluear fusion
+
+
+Probably the most impressive and famous examples have been in the realm of games. An early breakthrough was in 2015, when Mnih1 et. al. showed that DRL could play a wide range of Atari video games using deep reinforcement learning \cite{mnih2015humanlevel}. This is significant for two reasons, this first is that this is a very challenging problem, the agent is tasked to play the game using only pixles as input, and only the score of the game as output. Imagine you are the agent, you are handed an array of 12288 numbers (a 64x64 RGB image), asked to pick an action, and then given a score of zero. This repeats maybe 100 times and then you get a reward of one. Was is the action you picked at timestep 62? was it because entry 10456 had a large value at timestep 3? Figuring this out on it's own is impressive, and using the same algorithm to solve dozens of different games was even more impressive. In 2016 Alpha Go achieved super human performance in the game of Go, which no other approach has been able to do \cite{2017Natur.550..354S}. The same team later released Mu Zero, which surpassed Alpha Go and can also play shogi, chess, and a suite of Atari games, again at superhuman levels \cite{muzero2020}. 
+
+in which DRL has been used for physics-based character animation~\cite{2018-TOG-deepMimic}, and a wide variety of complex robotic tasks. This paper focuses primarily on applications in robotics. Continuous control problems in the context of robotics include controlling a 47 degree-of-freedom (DOF) humanoid to navigate various obstacles~\cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand~\cite{openai_learning_2018}, training the quadrupedal ANYmal robot to recover from falls~\cite{lee_robust_2019} \cite{hwangbo_learning_2019}, and teaching the bipedal Cassie robot to navigate stairs blindly~\cite{siekmann2021blind}. Recently I might even argue that DRL has taken over Boston dynamics in terms of robust walking with the recent work by ETH Zurich \cite{anymal2022}.
+
+
+       
+However there are a number of glaring issues I see with the current state of the art in reinforcement learning.
+    - Sample Inefficient \\
+    - Sim 2 real must be solved, for robotics \\ 
+    - Can't trust \\ 
+    - Quantifying Performance is Hard \\ 
+    - It is extremely Brittle  \\ 
+    - Sensitive To Initial Conditions \\ 
+    - Does Terribly in Some Kinds of Problems
+    
+    
+I take some steps to solve this
+
+    I solved the Acrobot, Twice ... Very Cool
+    
+    I did some reward post processing on a Markov chain thing
+    Uhh anyway ... 

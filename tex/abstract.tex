@@ -6,38 +6,16 @@
 \addcontentsline{toc}{chapter}{Abstract}
 %todo: max 350 words
 
-Deep learning is a very powerful tool for solving all sorts of problems. It however also has many severe drawbacks that hinder it's adoption to the real world. I use knowledge won from other fields to try to attack some of these shortcomings. At times it even appears to be working (if you squint ... generously). I used deep learning to learn to switch between a model based linear controller and a learned controller, and found an application of differentialble physics simulators to the same problem. I then wrote three paper on using post processing to improve reinforcement learning processes. I think the last one was simpler but more important. I wrote a lot of code too, and shared some of it ...
+Recent advances in machine learning, simulation, algorithm design, and computer hardware have allowed reinforcement learning (RL) to become a powerful tool that can solve a variety of challenging problems that have been difficult impossible to solve with other approaches. One of the most promising applications of RL is robotic control, in which researchers have demonstrated success on a number of challenging tasks, from rough terrain locomotion to complex object manipulation. Despite this, there remain many limitations that prevent RL from seeing wider adoption. Among these are a lack of any stability or robustness guarantees, and a lack of any way to incorporate domain knowledge into RL algorithms.
 
-(I also took 2 years of classes, earned a masters degree
-and taught for probably another two years combined, including lots of high 
+In this thesis we address these limitations by leveraging insights from other fields. We show that a model based local controller can be combined with a learned policy to solve a difficult nonlinear control problem that modern RL struggles with. In addition, we show that gradients in new, differentiable simulators can be leveraged by RL algorithms to better control the same class of nonlinear systems. 
 
-level classes that I had never taken.
+We also build on prior work that approximates dynamical systems as discrete Markov chains. This representation allow us to analyze stability and robustness properties of a system. We show that we can modify RL reward functions to encourage locomotion policies that have a smaller Markov chain representation, allowing us to expand the scope of systems that this type of analysis can be applied to. We then use a hopping robotic system as a case study for this type of analysis. Finally, we show the same tools that can shrink the Markov chain size can also be used for more generic fine tuning of RL policies, improving performance and consistency of learned policies across a wide range of benchmarking tasks. 
 
-Plus mild server admin stuff
 
-Plus lots of failed ML projects (but now have some ML creds)
 
-Did a freelance software, made some money
+% Deep learning is a very powerful tool for solving all sorts of problems. It however also has many severe drawbacks that hinder it's adoption to the real world. I use knowledge won from other fields to try to attack some of these shortcomings. At times it even appears to be working (if you squint ... generously). I used deep learning to learn to switch between a model based linear controller and a learned controller, and found an application of differentialble physics simulators to the same problem. I then wrote three paper on using post processing to improve reinforcement learning processes. I think the last one was simpler but more important. I wrote a lot of code too, and shared some of it ...
 
-Played lots of video games
-
-Earned money
-
-Wrote lots and lots of code learned several programming languages
-
-Published 5 papers in top conferences
-
-Participation trophy in open source software 
-
-I ended one long term relationship and started another (good decision)
-Made many new friends
-went on trips with them to far away places
-    - Hawaii, Big Bear
-    - San francisco, many small towns
-    
-Got into backpacking, biking up hills, and hiked all around santa barbara
-Survived a pandemic
-)
 
 %\abstractsignature
 \end{abstract}
