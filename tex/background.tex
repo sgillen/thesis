@@ -42,15 +42,7 @@ REINFORCE is the OG policy gradient algorithm, it's pretty old and influential. 
 
 Then some stuff I don't care about
 
-\subsection{Deep Learning and Supervised Learning}
-
-\todo{need some basic examples of supervised learning and deep learning here.. not 100 percent sure where to put this with respect to function approximators and neural networks... maybe after?}
-
-
-\subsection{Deep Reinforcement Learning}
-Sometimes around 2012 or so, deep neural networks saw a resurgence of interest in the space of supervised learning. This is usually attributed to the success of the work of Alex Krizhevsky who showed that convolutional neural networks were extremely effective at image classification \cite{NIPS2012_c399862d}. 
-
-\subsubsection{Function Approximators and Neural Networks}
+\section{Parameterized Functions and Neural Networks}
 
 It's worth taking a second here and talking about so called function approximators and neural networks, because otherwise the rest of this paper won't make any sense. A function approximator is really just a function which has tunable parameter in addition to inputs and outputs. In controls or reinforcement learning, we usually just call these "parameterized policies". Let's look at a simple example, third order polynomial with coefficients $a_{0}$, $a_{1}$, and $a_{2}$
 
@@ -63,7 +55,34 @@ At risk of belaboring the point, the equation above has an input (x), and output
 
 One of the most successful and popular function approximators, especially in recent years, have been neural networks. These come in many flavors, multilayers perecptrons (MLPs), convolutional neural networks (CNNs), long short term memories (LSTM) and Gated Recurrent Units (GRUs).
 
-\todo{should I talk about these in detail?? }
+Let's examine the MLP first in particular, which is the most common especially for control applications. We can see a diagram for an MLP in figure \ref{fig:mlp}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=.8\linewidth]{fig/dissertation/mlp.png}
+    \caption{A very simple MLP}
+    \label{fig:mlp}
+\end{figure}
+
+The outut is computed as follows: \todo{blah blah}
+
+So essentially, we do a big matrix multiply of the weights, a vectorized nonlinearity on the result, a new matrix multiply with the next layer weights, repeat. 
+
+Cool, another thing worth noting is that for most modern DRL, the thing we are parameterizing is actually a probability over actions rather than directly mapping to actions. So if we have an action space of size three then our network may have 6 outputs, 3 means and 3 standard deviations for normal distributions over the actions. When it is time to select an action, we sample from this distribution. 
+
+\section{Deep Learning and Supervised Learning}
+
+Supervised learning is when you learn by example. For example classifying images as either dogs or cats. This is done with backpropogation and a certain loss
+
+\todo{put in cross entropy loss from CDC paper}
+
+As discussed in the introduction, deep supervised learning really took off starting around 2012. 
+
+
+\section{Deep Reinforcement Learning}
+Sometimes around 2012 or so, deep neural networks saw a resurgence of interest in the space of supervised learning. This is usually attributed to the success of the work of Alex Krizhevsky who showed that convolutional neural networks were extremely effective at image classification \cite{NIPS2012_c399862d}. 
+
+
 
 
 There are sort of two schools of thought when it comes to RL for locomotion. There's RL for the animation of physics based characters, which is mostly useful in the context of movies or video games. This is mostly centered in michael v. panns group (\todo{probably}) at 
