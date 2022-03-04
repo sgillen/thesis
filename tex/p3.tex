@@ -1,105 +1,11 @@
 
-\section{INTRODUCTION}
+We have already discussed some prior work has using mesh based techniques to analayze control policies for robotic systems \cite{Taleledeep}. Broadly, these techniques take a continuous system and approximate it with a discrete set of states. This allows us to model the system as a Markov chain, these systems are arguably easier to reason about, and it opens up a new box of tools we can bring to bear on the problem. For example we can use value iteration to switch between several controllers to improve the robustness \cite{Talelepush} or agility \cite{Byl2017} of the system. We can also perform eigen-analysis on the Markov chain's transition matrix, which provides us insights on the stability of the system \cite{Byl2009}. These techniques could both be used for policy refinement, and/or for verification and analysis of existing policies. 
 
-
-%is this work improving the control of legged systems or is it moving towards more trusted RL policies
-% clearly both, but which to emphasize? should open with whichever one that is.
-
-% Might go with the same "RL is growing in importance because of computers, but how can we trust it" intro that I used for both CDC and CORL
-
-% Not sure we even need to talk about wheeled vehicles 
-
-Legged robots have clear potential to play an important role in our society in the near future. Examples include contact-free delivery during a pandemic, emergency work after an environmental disaster, or as a logistical tool for the military. Legged robots simply expand the reach of robotics when compared to wheeled systems. However, compared to wheeled systems, designing control policies for legged systems is a much more complex task, especially in the presence of disturbances, noise, and unstructured environments.
-
-The increasing availability of massive quantities of computation has led to a resurgence of reinforcement learning (RL) in recent years. RL provides a promising approach for complex, under-actuated, hybrid control problems, such as those involved in designing control for legged locomotion. Recent examples in the context of robotics include controlling a 47 DOF humanoid to navigate a variety of obstacles \cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand \cite{openai_learning_2018}, and allowing a physical quadruped robot to run \cite{hwangbo_learning_2019}, and recover from falls \cite{lee_robust_2019}.
-
-Despite the obvious promise of RL approaches, several problems need to be resolved before these systems are ready for real world applications. One of the biggest problems is that the resulting policy is typically a complete black box, there are no good ways to make theoretical, or even empirical guarantees about the resulting policies. Prior work has used so called mesh based techniques to this end \cite{Taleledeep}. Broadly, these techniques take a continuous system and approximate it with a discrete set of states. This allows us to model the system as a Markov chain, these systems are arguably easier to reason about, and it opens up a new box of tools we can bring to bear on the problem. For example we can use value iteration to switch between several controllers to improve the robustness \cite{Talelepush} or agility \cite{Byl2017} of the system. We can also perform eigen-analysis on the Markov chain's transition matrix, which provides us insights on the stability of the system \cite{Byl2009}. These techniques could both be used for policy refinement, and/or for verification and analysis of existing policies. 
-
-However, these methods suffer from the "curse of dimensionality", because the number of possible states in our mesh grows exponentially with the degrees of freedom in our system. That is, if we make a change to the volume of continuous space represented by each discrete state, the number of states in our new mesh will grow exponentially with respect to the change in discrete state size. However for virtually all plausible walking controllers, the reachable state space is a small fraction of the total state space. Although the scaling for meshes of the reachable state space also scale exponentially as we increase the mesh resolution, the rate of scaling is typically much smaller. The scaling factor for the reachable mesh can be seen as a \textbf{fractal dimension}, which is elaborated upon in section \ref{sec:fracdim}.
-
-In previous work \cite{Gillen2020ExplicitFractal}, we introduced a modified reward function for on-policy reinforcement learning algorithms. The reward explicitly encourages policies which induce trajectories which have a smaller fractal dimension. It's worth noting that although each individual trajectory was encouraged to have a smaller fractal dimension, this does not obviously extend to properties of the entire reachable state space for the system, which is what was used for the previous mesh based analysis of RL policies. 
+Unlike the previous section, where we considered meshes of a single trajectory, this prior work that studies a systems reachable state space mesh. That is, the set of states that can be reached with a fixed controller, and a known set of disturbances. Although in the previous section, each trajectory was encouraged to have a smaller fractal dimension, this does not obviously extend to properties of the entire reachable state space for the system, which is what was used for the previous mesh based analysis of RL policies. 
 
 In this work we take the next step and construct reachable state space meshes of agents trained with and without our modified reward. Our primary contribution is showing that these modified policies result in significantly smaller reachable meshes for a given box size, and in smaller fractal dimensions for the reachable state space. We then use the modified policies to construct a much finer mesh than would be possible otherwise. We use this mesh to compute a quantity called the mean first passage time (MFPT), and validate the obtained MFPT with Monte Carlo trials. Finally we use our mesh to produce interesting visualizations of failure states, which motivates future work.
 
-\section{BACKGROUND}
-
-In this section we introduce fractional dimensions, meshing, reinforcement learning, and our test environment. The environment is a hopping robot, coupled with a specific reward function. Reinforcement learning is used to train a control policy for this system which attempts to maximize the given reward function. In previous work we used a fractional dimension to modify the reward function, this modified reward results in policies that can be meshed significantly more efficiently. 
-
-
-\subsection{Meshing and Fractal Dimensions}
-\label{sec:fracdim}
-
-% \begin{figure}[h!]
-%   \centering
-%   \begin{subfigure}[b]{0.45\linewidth}
-%     \includegraphics[width=\linewidth]{fig/icra2021//Fractaldimensionexamplebw.png}
-%     \caption{Scaling in different dimensions}
-%   \end{subfigure}
-%   \begin{subfigure}[b]{0.45\linewidth}
-%     \includegraphics[width=\linewidth]{fig/icra2021//Snow_Mesh_Example.png}
-%     \caption{A non uniform mesh}
-%   \end{subfigure}
-%   \caption{Image credit: \cite{BrendanRyan/Publicdomain2020}, \cite{Talelepush}.}
-%   \label{fig:fracdim}
-% \end{figure}
-
-% \begin{wrapfigure}{L}{0.3\textwidth}
-% \centering
-% \includegraphics[width=0.3\textwidth]{fig/icra2021//HalfCheetahRews.png}
-% \caption{\label{fig:frog2} Half Cheetah Reward Curves.}
-% \end{wrapfigure}
-
-Let's say we have a continuous set S that we want to approximate by selecting a discrete set M  composed of regions in S. We will call this set M a mesh of our space. Figure \ref{fig:fracdim}(a) shows some examples of this: a line is broken into segments, a square into grid spaces, and so on. The question is: as we increase the resolution of these regions, how many more regions N do we need? Again, Figure \ref{fig:fracdim}(a) shows us some very simple examples. For a D dimensional system, if we go from regions of size d to d/k, then we would expect the number of mesh points to scale as $N \propto k^{D}$. But not all systems will scale like this, as Figure \ref{fig:fracdim}(b)
-%and \ref{fig:mdim_example} 
-illustrates. Figure \ref{fig:fracdim}(b) is an example of a curve embedded in a two dimensional space. The question of how many mesh points are required must be answered empirically. Going backwards, we can use this relationship to assign a notion of "dimension" to the curve. 
-
-\begin{equation}
-    D_{f} = -\lim_{k \rightarrow 0}\frac{\log N(k)}{\log k}. 
-    \label{eq:frac_dim}
-\end{equation}
-
-This quantity is known as the Minkowski–Bouligand dimension, also called the box counting dimension. This dimension need not be an integer, hence the name "fractional" or "fractal" dimension. This is one of many measures of fractional dimensionality that emerged from the study of fractal geometry. Although these measures were invented to study fractals, they can still be usefully applied to non-fractal sets. For non fractal sets, we use the slope of the log-log relation of mesh sizes to d to compute the dimension, rather than taking a limit. 
-
-
-% Figure \ref{fig:mdim_example} shows an example of this.
-
-% \begin{figure}[!h] 
-% \centering
-% \includegraphics[width=.65\linewidth]{fig/icra2021//Snow_LineFitAnn.png}
-% \caption{Example of fitting mesh size data to obtain an estimate of the fractal dimension}
-% \label{fig:mdim_example}
-% \end{figure}
-
-\subsection{Box Meshing}
-
-In this work, we identify any state \textit{s} with a key obtained by: 
-
-\begin{gather}
-\nonumber s_{k} = \frac{s - \mu_{s}}{\sigma_{s}} \\ 
-\text{key} = \text{round}(\frac{s_{k}}{d_{thr}})d_{thr}.   
-\label{eq:key}
-\end{gather}
-
-where $\mu_{s}$ and $\sigma_{s}$ are the mean and standard deviation of all the states seen by the policy of interest during training. The round function here performs an element-wise rounding to the nearest integer. We can then use these keys to store mesh points in a hash table. Using this data structure, we can store the mesh compactly, only keeping the points we come across, and lookups are done in constant time. The parameter $d_{thr}$ is called the \textbf{box size}. Geometrically we can think of this operation as dividing the state space into a uniform grid of hypercubes, each with a side length of $d_{thr}$  
-
-\subsection{Reinforcement Learning}
-
-The goal of reinforcement learning is to train an agent acting in an environment to maximize some reward function. At every timestep $t \in \mathbb{Z}$, the agent receives the current state $s_{t} \in R^{n}$, uses that to compute an action $a_{t} \in \mathbb{R}^{b}$, and receives the next state $s_{t+1}$, which is used to calculate a reward $r : \mathbb{R}^{n} \times \mathbb{R}^{m} \times \mathbb{R}^{n} \rightarrow \mathbb{R}$. The objective is to find a policy  $\pi_{\theta}: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}$ that satisfies: 
-
-\begin{equation} \argmax_{\theta} \mathop{\mathbb{E}}_{\eta}\left[ \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) \right]. \end{equation}
-
-Where $\theta \in \mathbb{R}^{d}$ is a set that parameterizes the policy, and $\eta$ is a parameter representing the randomness in the environment. This includes the random initial conditions for episodes.
-
-In \cite{Gillen2020ExplicitFractal}, we introduced a modified reward function:
-
-\begin{equation} 
-\argmax_{\theta} \mathop{\mathbb{E}}_{\eta}\left[ \frac{1}{D_{m}(s)}\sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) \right]
-\label{eq:frac_reward}
-\end{equation}
-
-where $D_{m}$ is the "lower mesh dimension" explained in detail in \cite{Gillen2020ExplicitFractal}, which is an estimate of equation \ref{eq:frac_dim} dimension for our non fractal set. 
-
-\subsection{Environment}
+\section{The Hopper Benchmark System}
 
 Our model system is openAI gym's Hopper-v2 environment introduced in \cite{1606.01540}. This environment is part of a popular and standardized set of benchmarking tasks for reinforcement learning algorithms. The system is a 4 link, 6 DOF hopper constrained to travel in the XZ plane, seen in Figure \ref{fig:hopper}. The observation space for the agent has 11 states, the position in the direction of motion is held out, since we seek a policy that is invariant to forward progress. The actions in this case are commanded joint torques. The reward function for this environment is simply forward velocity minus a small penalty to actions. Successful controllers in this environment must execute a dynamic hopping motion to move robot along the x axis as quickly as possible. This is clearly a toy problem, but it captures many of the challenges of legged locomotion. The system is highly non-linear, under-actuated, and must interact with friction and ground contacts to maximize it's reward.  
 
@@ -138,9 +44,7 @@ Our model system is openAI gym's Hopper-v2 environment introduced in \cite{1606.
 % \end{algorithm}
 
 
-\section{MESHING}
-
-In \cite{Gillen2020ExplicitFractal} we used meshes of individual trajectories to calculate fractional dimensions. However the previous work that has used meshing for analysis of RL policies \cite{Taleledeep} instead examines meshes of the reachable state space of a system. In particular \cite{Taleledeep} examines the reachable state space with a fixed control policy subject to a given set of disturbances. We will now outline the process for this style of meshing.  
+\section{Meshing the Reachable State Space}
 
 We are interested in the set of states that our system can transition to with a fixed policy and a given set of push disturbances. We first introduce a failure state to the mesh. The failure state is assumed to be absorbing, once the robot falls it is assumed to stay that way. For our hopper, any state where the COM falls below .7m is considered to have failed, which works well in practice. This is also the failure condition of the environment during training, and therefore the agent is never trained in regions of the state space that satisfy the failure condition. 
 
@@ -224,7 +128,7 @@ We wish to use our mesh based methods to quantify the stability of our system. T
 % Not convinced we need this at all?
 
 
-\section{TRAINING}
+\section{Training the Hopper}
 
 In \cite{Mania2018} Mania et al introduce Augmented Random Search (ARS) which proved to be efficient and effective on the locomotion tasks. Rather than a neural network, ARS used static linear policies, and compared to most modern reinforcement learning, the algorithm is very straightforward. The algorithm is known to have high variance; not all seeds obtain high rewards, but to our knowledge their work in many ways represents the state of the art on the Mujoco benchmarks. Mania et al introduce several small modifications of the algorithm in their paper, our implementation corresponds to the version they call ARS-V2t, hyper parameters are provided in the appendix.
 
@@ -413,16 +317,9 @@ One of the advantages of having a discrete set of states is that it opens up new
 
 
 
-\section{CONCLUSIONS}
+\section{Conclusions}
 
 In this work, we apply previously developed tools that create discrete meshes for the reachable state space of a system. These tools were applied to policies obtained with a modified reinforcement learning reward function which was previously shown to encourage small mesh dimensions for individual trajectories not subject to any disturbances. We showed that these modified policies have a smaller average reachable mesh size across all random seeds for coarse meshes and a small number of disturbances. We then showed a clear difference in mesh sizes and mesh dimensions for the top performing seeds on a richer set of disturbances and finer mesh sizes. We also validated our use of the MFPT as a tool by comparing it to Monte Carlo trials. Finally, we constructed a high fidelity mesh at a resolution that would not have been feasible with standard ARS policies. In addition, we created visualizations with this mesh that revealed insights about the contracting nature of the policy, and which point to future applications of this approach. Taken together, these results show two things. First, it further validates the utility of the fractal dimension reward, which we have shown transfers it's desirable quality of having a more compact state space to a setting with external disturbances. These results are also a credit to the mesh based tools, because it shows that the fractal training can be used to extend the reach of these tools to higher dimensional systems or higher resolution meshes than would have otherwise been possible.  
-
-
-\section*{APPENDIX}
-
-\subsection*{Hyper Parameters}
-\textbf{ARS:} (from \cite{Mania2018}) $\alpha = 0.02$, $\sigma = 0.025$, $N=50$, $b=20$.  \\
-\textbf{MeshDim:} (from \cite{Gillen2020ExplicitFractal}) f = 1.5, $d_{0}$ = 1e-2
 
 
 \subsection*{Noise During Training}

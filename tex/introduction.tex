@@ -1,3 +1,9 @@
+"""
+The availability of computation as a resource has been growing exponentially since at least the 1970s, and there is every indication that this resource will continue to become cheaper and more available well into the conceivable future. Researchers have been able to leverage the large amounts compute available to better control robotic systems, and advances in computational capacity and algorithmic development continue to open up new domains. One promising manifestation of this is model-free reinforcement learning, a branch of machine learning which allows an agent to interact with its environment and autonomously learn how to maximize some measure of reward. The promise here is to allow researchers to solve problems for systems that are hard to model, and/or that the user doesn't know how to solve themselves.  Recent examples in the context of robotics include controlling a 47 DOF humanoid to navigate a variety of obstacles \cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand \cite{openai_learning_2018}, and allowing a physical quadruped robot to run \cite{hwangbo_learning_2019}, and recover from falls \cite{lee_robust_2019}.
+"""
+
+\section{A History of Reinforcement Learning}
+\subsection{Early Reinforcement Learning}
 
 Reinforcement learning can trace its roots to theories about animal cognition 
 
@@ -8,16 +14,34 @@ According to R. S. Woodworth (1938) the idea of trial-and-error learning goes as
 
 These ideas have been applied to artificial intelligence as far back as 1933, where \todo{someone} made a maze solver robots using physical switches. 
 
-Now in recent years research into deep reinforcement has exploded, with many impressive results advancing the state of the art in many fields.
+
+\subsection{Modern Reinforcement Learning}
 
 
-- Super human video game AI (starcraft, dota, atari) \\ 
-    - Board Games (Go, Chess) (State of the art here ... In chess alpha zero crushes the latest version of stockfish, the strongest traditional chess engine, which itself crushes the best human grandmasters.
-    - Object Manipulation (Rubics cube) \\ 
+
+Sometimes around 2012 or so, deep neural networks saw a resurgence of interest in the space of supervised learning. This is usually attributed to the success of the work of Alex Krizhevsky who showed that  convolutions neural networks were extremely effective at image classification \cite{NIPS2012_c399862d}.
+\todo{Nueral nets have been around forever, we've known they were a universal function approximator early}
+They key insight from that work was that bigger was better, by scaling up the size of the network, and the amount of training data used, deep neural networks became an extremely powerful tool. What makes them so powerful is that you can leverage the vast amount of compute available to us today. Deep learning obviously exploded from there, and it came to dominate reinforcement learning as well. 
+
+
+\todo{need to get my history in order here}
+
+
+  
+    % Only a few years later, we saw a big breakthrough, a team was able to train neural networks to play Atari games at a superhuman level. The input was the raw pixel values from the game, and the reward is the score from the game. This is remarkable for a number of reasons, but it's cool that the same algorithm was able to work successfully across a wide variety of games, which you might think require very different strategies. \cite{mnih2015humanlevel}
+
+
+Probably the most impressive and famous examples have been in the realm of games. An early breakthrough was in 2015, when Mnih1 et. al. showed that DRL could play a wide range of Atari video games using deep reinforcement learning \cite{mnih2015humanlevel}. This is significant for two reasons, this first is that this is a very challenging problem, the agent is tasked to play the game using only pixles as input, and only the score of the game as output. Imagine you are the agent, you are handed an array of 12288 numbers (a 64x64 RGB image), asked to pick an action, and then given a score of zero. This repeats maybe 100 times and then you get a reward of one. Was is the action you picked at timestep 62? was it because entry 10456 had a large value at timestep 3? Figuring this out on it's own is impressive, and using the same algorithm to solve dozens of different games was even more impressive. In 2016 Alpha Go achieved super human performance in the game of Go, which no other approach has been able to do \cite{2017Natur.550..354S}. The same team later released Mu Zero, which surpassed Alpha Go and can also play shogi, chess, and a suite of Atari games, again at superhuman levels \cite{muzero2020}.  . In chess alpha zero crushes the latest version of stockfish, the strongest traditional chess engine, which itself crushes the best human grandmasters.
     
 
-    
-    Only a few years later, we saw a big breakthrough, a team was able to train neural networks to play Atari games at a superhuman level. The input was the raw pixel values from the game, and the reward is the score from the game. This is remarkable for a number of reasons, but it's cool that the same algorithm was able to work successfully across a wide variety of games, which you might think require very different strategies. \cite{mnih2015humanlevel}
+\cite{Carpanese2022} Nucluear fusion
+\todo{Dota, Starcraft}
+
+
+
+\todo{A Word on Model Based Reinforcement Learning, Not covered here, but here's what it would be and why it's not relavent} 
+
+
 
 
 % \begin{figure}[!htb]
@@ -57,15 +81,34 @@ Now in recent years research into deep reinforcement has exploded, with many imp
 \end{figure}
 
 
-\cite{Carpanese2022} Nucluear fusion
 
 
-Probably the most impressive and famous examples have been in the realm of games. An early breakthrough was in 2015, when Mnih1 et. al. showed that DRL could play a wide range of Atari video games using deep reinforcement learning \cite{mnih2015humanlevel}. This is significant for two reasons, this first is that this is a very challenging problem, the agent is tasked to play the game using only pixles as input, and only the score of the game as output. Imagine you are the agent, you are handed an array of 12288 numbers (a 64x64 RGB image), asked to pick an action, and then given a score of zero. This repeats maybe 100 times and then you get a reward of one. Was is the action you picked at timestep 62? was it because entry 10456 had a large value at timestep 3? Figuring this out on it's own is impressive, and using the same algorithm to solve dozens of different games was even more impressive. In 2016 Alpha Go achieved super human performance in the game of Go, which no other approach has been able to do \cite{2017Natur.550..354S}. The same team later released Mu Zero, which surpassed Alpha Go and can also play shogi, chess, and a suite of Atari games, again at superhuman levels \cite{muzero2020}. 
+\section{Reinforcement Learning for Robotics}
+
+"""
+Legged robots have clear potential to play an important role in our society in the near future. Examples include contact-free delivery during a pandemic, emergency work after an environmental disaster, or as a logistical tool for the military. Legged robots simply expand the reach of robotics when compared to wheeled systems. However, compared to wheeled systems, designing control policies for legged systems is a much more complex task, especially in the presence of disturbances, noise, and unstructured environments.
+"""
+
 
 in which DRL has been used for physics-based character animation~\cite{2018-TOG-deepMimic}, and a wide variety of complex robotic tasks. This paper focuses primarily on applications in robotics. Continuous control problems in the context of robotics include controlling a 47 degree-of-freedom (DOF) humanoid to navigate various obstacles~\cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand~\cite{openai_learning_2018}, training the quadrupedal ANYmal robot to recover from falls~\cite{lee_robust_2019} \cite{hwangbo_learning_2019}, and teaching the bipedal Cassie robot to navigate stairs blindly~\cite{siekmann2021blind}. Recently I might even argue that DRL has taken over Boston dynamics in terms of robust walking with the recent work by ETH Zurich \cite{anymal2022}.
 
+\subsection{Legged Locomotion}
 
-       
+There are sort of two schools of thought when it comes to RL for locomotion. There's RL for the animation of physics based characters, which is mostly useful in the context of movies or video games. This is mostly centered in michael v. panns group (\todo{probably}) at 
+Then there is everyone else, who is in it for robotics, or just for pure RL maybe ... 
+
+Google brain, deepmind, openAI, Berkely AI lab, these are the most prolific labs in this space. 
+
+Still need to introduce openAI gym, and dm control suite...
+And also talk about the sort of two schools of thought, character animation and robotic control. 
+
+Here's where we get to the part that introduced me to the topic. In 2017 Deep Mind released some work regarding locomotion policies in simulated environments, they look a little silly, but I thought it was mind blowing at the time, since I was working with a simpler system, and couldn't get it to work at. all. 
+
+Then Deep Mind Mujoco, PPO, Lots of stuff
+
+\section{Limitations of Reinforcement Learning}
+
+
 However there are a number of glaring issues I see with the current state of the art in reinforcement learning.
     - Sample Inefficient \\
     - Sim 2 real must be solved, for robotics \\ 
@@ -75,6 +118,8 @@ However there are a number of glaring issues I see with the current state of the
     - Sensitive To Initial Conditions \\ 
     - Does Terribly in Some Kinds of Problems
     
+    
+\section{Structure of this Thesis}
     
 I take some steps to solve this
 

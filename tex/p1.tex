@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{INTRODUCTION}
+\section{Introduction}
 
 Advances in machine learning have allowed researchers to leverage the massive amount of compute available today in order to better control robotic systems. The result is that modern model-free reinforcement learning has been used to solve very difficult problems. Recent examples include controlling a 47 DOF humanoid to navigate a variety of obstacles \cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand \cite{openai_learning_2018}, and allowing a physical quadruped robot to run \cite{hwangbo_learning_2019}, and recover from falls \cite{lee_robust_2019}.
 
@@ -40,15 +40,8 @@ Wiklednt et. al  \cite{wiklendt_small_2009} too swing-up and balance an acrobot 
 
 Doya \cite{doya_multiple_2002} also learns many controllers using reinforcement learning, and adaptively switches between them. However unlike our work, the switching function is not learned using reinforcement learning, but is instead selected according to which of the controllers currently makes best prediction of the state at the current point in state space. We believe our model free updates will avoid the model bias that can be associated with such approaches. Furthermore our work allows for combining learned controllers with hand designed controllers, such as the LQR.  
 
-\section{Background}
-\subsection{Nomenclature}
+\section{The Acrobot System}
 
-We formulate our problem as a Markov decision process, $M = (S,A,R) $. At each time step $t$, Our agent receives the current state $s_{t} \in S$ and chooses an action $a_{t} \in A$. It then receives a reward according to the reward function $r_{t} = R(s_{t}, a_{t}, s_{t+1})$. The goal is to find a policy  $\pi: S \rightarrow p(A = a | s)$ that satisfies:
-
- \begin{dmath} \pi^{*} = \argmax_{\pi} \mathbb{E}\left[ \sum_{t=0}^{\infty}\gamma^{t}R(s_{t}, a_{t}, s_{t+1}) \right]  \end{dmath}
-
-
-\subsection{Acrobot}
 \label{section:Acrobot}
 
 The acrobot is described in Figure \ref{fig:acrobot}. It is a double inverted pendulum with a motor only at the elbow. We use the parameters from Spong \cite{spong_swing_1994}:
@@ -96,71 +89,6 @@ We implement the system in python (all source code is provided, see footnote on 
 % target value = ${V}_{\overline{\phi}}$ \\
 % Q1 = $Q_{\rho_{1}}$ \\
 % Q2 = $Q_{\rho_{2}}$ \\
-
-
-\subsection{Soft Actor Critic}
-
-Soft actor critic (SAC) is an off policy deep reinforcement learning algorithm shown to do well on control tasks with continuous actions spaces \cite{haarnoja_soft_2018}. To aid in exploration, rather than directly optimize the discounted sum of future rewards, SAC attempt to find a policy that optimizes a surrogate objective: 
-
-
-\begin{dmath}J^{\mathrm{soft}} = \mathbb{E}\left[ \sum_{t=0}^{\infty}\gamma^{t}\bigg(R_{t} + \alpha H(\pi(\cdot|s_{t}))\bigg) \right]  \label{eq:thresh} \end{dmath}
- 
- Where $H$ is the entropy of the policy.
- 
- %\[ V^{\pi}(s) = \mathbb{E}\left[ \sum_{t=0}^{\infty}\gamma^{t}\bigg(R_{t} + \alpha H(\pi(\cdot|s_{t}))\bigg)  \bigg\rvert s_{0} = s\right] \]
-
-%We are also going to learn a Q function which satisfies:
-
-%\[ Q^{\pi}(s,a) = \mathbb{E}\left[ \sum_{t=0}^{\infty}\gamma^{t}\bigg(R_{t}+ \alpha \sum_{t=1}^{\infty} \gamma^{t} H(\pi(\cdot|s_{t}))\bigg)  \bigg\rvert s_{0} = s, a_{0} = a\right] \]
-
- 
-SAC introduces several neural networks for the training. We define a soft value function $V_{\phi}(s_{t})$, a neural network defined by weights $\phi$, which approximate $J^{soft}$ given the current state. Next we define two soft Q functions $Q_{\rho_{1}}(s_{t}, a_{t})$ and $Q_{\rho_{2}}(s_{t}, a_{t})$ which approximate $J^{soft}$ given both the current state and the current action. Using two Q networks is a trick that aids the training by avoiding overestimating the Q function. We must also define a target soft value function $V_{\overline \phi}(s_{t})$, which follows the value function via polyak averaging:
-
-\begin{dmath}
-V_{\overline \phi^{+}}(s_{t}) = c_{py}V_{\overline \phi}(s_{t}) +  (1 - c_{py})V_{\phi}
-\end{dmath}
-
-With $c_{py}$ a fixed hyper parameter. We also define $\Pi_{\theta}$, a neural network that outputs $\mu_{\theta}(s_{t})$ and $\log(\sigma_{\theta}(s_{t}))$ which define the probability distribution of our policy $\pi_{\theta}$. The action is given by:
-
-\begin{dmath}
-a_{t} = \tanh(\mu_{\theta}(s_{t}) + \sigma_{\theta}(s_{t}) \epsilon_{t})
-\label{act}
-\end{dmath}
-
-where $\epsilon_{t}$ is drawn from $N(0,1)$. 
- 
-SAC also make use of a replay buffer $D$ which stores the tuple $(s_{t}, a_{t}, r_{t})$ after policy rollouts. When it is time to update we sample randomly from this buffer, and use those samples to compute our losses and update our weights. 
- 
- 
-With this we can define the losses for each of these networks (originated from \cite{haarnoja_soft_2018})
- 
-The loss for our two Q functions is:
- 
-\begin{dmath} L^{Q} = \mathbb{E}_{s_{t}, a_{t} \sim D}\left[\frac{1}{2}\left( Q_{\rho}(s_{t},a_{t}) - \hat{Q}(s_{t}, a_{t}) \right) ^{2}  \right] \end{dmath}
-where
-\begin{dmath} \hat{Q}(s_{t}, a_{t}) = r(s_{t}, a_{t}) + \gamma\mathbb{E}_{s_{t+1}}\left[V_{\overline{\phi}}(s_{t+1} ) \right]  \end{dmath}
-
-Our policy seeks to minimize:
-
-\begin{dmath} 
-L^{\pi} = \mathbb{E}_{s_{t} \sim D, \epsilon_{t} \sim N(0,1)}\left[ \log \pi_{\theta}(f_{\theta}(\epsilon_{t}, s_{t}) | s_{t}) - Q_{\rho_{1}}(s_{t}, f_{\theta}(\epsilon_{t}, s_{t}) \right]
-\end{dmath}
-
-And our value function:
-
-\begin{dmath}
-L^{\text{V}} = \mathop{\mathbb{E}}_{s_{t} \sim D} \left[ \frac{1}{2} \left( V_{\phi}(s_{t}) - \hat  V_{\phi}(s_{t}) \right)^{2}  \right] 
-\end{dmath} 
-
-Where
-
-\begin{dmath}
-\hat V_{\phi} = \mathbb{E}_{a_{t} \sim \pi_{\theta}} \left[Q^{min}(s_{t}, a_{t}) - log \pi_{\theta}(a_{t} | s_{t}) \right]
-\end{dmath}
-
-And $Q^{min} = \min(Q_{\rho_{1}}(s_{t}, a_{t}), Q_{\rho_{2}}(s_{t}, a_{t}))$
-
- SAC starts by doing policy roll outs, recording the state, action, reward, and the active controller at each time step. It stores these experiences in the replay buffer. After enough trials have been run, we run our update step. We sample from the replay buffer, and use these sampled states to compute the losses above. We then run one step of Adam \cite{kingma_adam:_2014} to update our network weights. We repeat this update $n_{u}$ times with different samples. Finally we  copy our weights to our target network and repeat until convergence (or some other stopping metric). 
 
 
 
@@ -348,7 +276,7 @@ We have also found that despite achieving relatively high rewards, the other alg
 
 
 
-\section{CONCLUSIONS}
+\section{Conclusions}
 
 We have presented a novel control design methodology that allows engineers to leverage their domain knowledge, while also reaping many of the benefits from recent advances in deep reinforcement learning. In our case study we constructed a policy to swing-up and balance an acrobot while only needing to manually design a linear controller for the balancing task. We believe this method of control will be straightforward to apply to the double or triple cartpole problems, which to our knowledge no model free algorithm is reported as solving. We also think that this general methodology can be extended to more complex problems, such as legged locomotion. In that case the linear controller here could be a nominal walking controller obtained via trajectory optimization, and the learned controller could be a recovery controller to return to the basin of attraction of this nominal controller. 
 

@@ -50,15 +50,6 @@ The rest of this paper is laid out as follows. First, we introduce the problem s
 
 
 \section{Methods}
-
-
-\subsection{Reinforcement Learning}
-
-The goal of reinforcement learning is to train an agent acting in an environment to maximize some reward function. At every timestep $t \in \mathbb{Z}$, the agent receives the current state $s_{t} \in \mathbb{R}^{n}$, uses that to compute an action $a_{t} \in \mathbb{R}^{b}$, and then receives the next state $s_{t+1}$, which is used to calculate a reward $r : \mathbb{R}^{n} \times \mathbb{R}^{m} \times \mathbb{R}^{n} \rightarrow \mathbb{R}$. The objective is to find a policy  $\pi_{\theta}: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}$
-
-\begin{equation} \argmax_{\theta} \mathop{\mathbb{E}}_{\eta}\left[ \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) \right] \end{equation}
-where $\theta \in \mathbb{R}^{d}$ is a set that parameterizes the policy, and $\eta$ is a parameter representing the randomness in the environment. We will call the sum of rewards obtained during an episode a return. 
-
 \subsection{Direct Policy Search}
 \label{sec:search}
 

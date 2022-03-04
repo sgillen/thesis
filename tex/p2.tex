@@ -1,12 +1,12 @@
 \section{Introduction}
    
-    The availability of computation as a resource has been growing exponentially since at least the 1970s, and there is every indication that this resource will continue to become cheaper and more available well into the conceivable future. Researchers have been able to leverage the large amounts compute available to better control robotic systems, and advances in computational capacity and algorithmic development continue to open up new domains. One promising manifestation of this is model-free reinforcement learning, a branch of machine learning which allows an agent to interact with its environment and autonomously learn how to maximize some measure of reward. The promise here is to allow researchers to solve problems for systems that are hard to model, and/or that the user doesn't know how to solve themselves.  Recent examples in the context of robotics include controlling a 47 DOF humanoid to navigate a variety of obstacles \cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand \cite{openai_learning_2018}, and allowing a physical quadruped robot to run \cite{hwangbo_learning_2019}, and recover from falls \cite{lee_robust_2019}.
+    
 
-    In this paper we study legged locomotion. This class of problems is notoriously difficult, and as a result reinforcement learning is a popular tool to throw at it. We would argue that hand-designed, model based control still represents the state of the art (a la Boston Dynamics), but RL has been a fruitful approach. There are examples of learned policies outperforming hand designed ones \cite{hwangbo_learning_2019}, and there is good reason to believe these learning methods will continue their current trajectory of increasing performance gains and ease of use. But these algorithms have a serious draw back in that they are mostly black boxes. It is an open challenge to figure out what exactly it is that your RL agent has learned. If all you know is that one of your agents achieved very high reward, it is not clear how to verify that this system is safe and sensible in all the regions of state space it will visit during its life. Nor can we necessarily say anything about the stability or robustness properties of the system. Recent work ~\cite{Taleledeep} has used so-called mesh-based tools to examine precisely these questions. 
+    As we have discussed, modern RL algorithms have a serious draw back in that they are mostly black boxes. It is an open challenge to figure out what exactly it is that your RL agent has learned. If all you know is that one of your agents achieved very high reward, it is not clear how to verify that this system is safe and sensible in all the regions of state space it will visit during its life. Nor can we necessarily say anything about the stability or robustness properties of the system. Recent work ~\cite{Taleledeep} has used so-called mesh-based tools to examine precisely these questions. 
     
     However, utility of any mesh-based tool to accurately discretize a state-space is limited, due to the curse of dimensionality. In practice, these methods are only able to work on relatively high dimensional systems if the reachable space grows at a rate that is much smaller than the exponential growth of the full state space the system within which it is embedded. To expand these methods to higher dimensional systems. We will need to find ways to keep the volume of visited states from expanding commensurately. One way to quantify this rate of growth is by using one of the several notions of "fractional dimensions" from fractal geometry.
     
-    In this work, we discuss an efficient meshing algorithm, which we call box meshing. We show that this approach makes calculating the so called mesh dimension feasible in the context of reinforcement learning. We also propose using other notions of fractional dimension from the literature as a proxy for the property we care about. We then show that reinforcement learning agents can be trained to shrink these measures by post processing their reward function. We present the results of this training, and finally present some brief analysis of the resulting structure for select policies.  
+    In this chapter, we discuss an efficient meshing algorithm, which we call box meshing. We show that this approach makes calculating the so called mesh dimension feasible in the context of reinforcement learning. We also propose using other notions of fractional dimension from the literature as a proxy for the property we care about. We then show that reinforcement learning agents can be trained to shrink these measures by post processing their reward function. We present the results of this training, and finally present some brief analysis of the resulting structure for select policies.  
 
 
     
@@ -52,6 +52,9 @@ In \cite{OguzSaglam2015}, Saglam and Byl introduced a technique that is able to 
 
 Since its introduction, meshing in this fashion has been used for designing walking controllers robust to push disturbances \cite{Talelepush}, to design agile gaits for a quadruped \cite{Byl2017}, and to analyze hybrid zero dynamics (HZD) controllers \cite{Saglam2015}. There has also been recent work to use these tools to analyze policies trained by deep reinforcement learning \cite{Taleledeep}. A long term goal and motivation for this work is to take a high performance controller obtained via reinforcement learning, and extract from it a mesh-based policy that is both explainable and amenable to analysis.
 
+\todo{Can add some more intro, explanation, use figures from the GSCubed talk}
+
+
 \subsection{Box Meshing}
 \label{sec:boxmsh}
 Our primary improvement to the prior work on meshing is to introduce something we call box meshing. Prior, a new mesh point could take any value in the state space. To determine if a new state is already in the mesh, we would compute a distance metric to every point in the mesh, and check if the minimum was below our threshold. Thus, building the mesh was an $O(n)^{2}$ algorithm. By contrast, in box meshing we apriori divide the space uniformly into boxes with side length $d$. We identify any state s with a key obtained by: $\text{key} = \text{round}(\frac{s}{d})d$, where round performs an element-wise rounding to the nearest integer. We can then use these keys to store mesh points in a hash table. Using this data structure, we can still store the mesh compactly, only keeping the points we come across. However, insertion and search are now $O(1)$, and so building the mesh is $O(n)$. This is very similar to non-hierarchical bucket methods, which are well studied spatial data structure \cite{Samet1990}, although we are using them for data compression here. In the prior meshing work, this sort of speedup would be minor, the run-time is dominated by the simulator or robot. However, this speedup does open some new possibilities: most poignantly, it makes calculating the mesh dimension during reinforcement learning plausible. 
@@ -60,6 +63,31 @@ Our primary improvement to the prior work on meshing is to introduce something w
 \subsection{Algorithmic Box Mesh Dimension}
 \label{sec:boxdim}
 The "mesh dimension" is the quantity extracted from the slope of the log log plot of mesh sizes vs d values. For this paper, it is assumed that the mesh algorithm being used for this calculation is the box mesh. Automatically computing the mesh dimension of a data set generated from learning agent with speed, accuracy, and robustness is very challenging. A single trajectory provides only a small amount of data, which adds significant noise to the mesh sizes. Agents might do things like fall over and generate extremely short trajectories, or learn a trajectory that "stands in place", which can lead to numerical errors. Finally, every decision is a trade-off between accuracy and speed. Model-free RL is predicated on having a huge number of rollouts to learn from, and we would like for any mesh-dimension quantification algorithm to be fast enough so as to not dominate the total learning time. With these factors in mind, we introduce two box mesh dimensions. The lower mesh dimension does the linear fit, but intentionally errs on the side of including flat parts of the graph, and therefore tends to underestimate the true mesh dimension. We then have the upper mesh dimension, which takes the largest slope in the log log relationship, thus tending to overestimate the true mesh dimension. Neither of these measures are correct, but taken together they can bound the mesh dimension, and as we will see they can be useful on their own.
+
+
+\subsection{Mesh Dimension Examples}
+
+Figure \ref{fig:curves} illustrates two examples of the curves used to compute the mesh dimension. Recall that to compute the mesh dimension, we choose several values for d, the box length, and for each d construct a mesh using that box size. The x axis of these plots represents the log of the box length used, the y axis represents the log of size of the mesh created. For each curve, we display the lower bound and upper bound for the dimension as computed by algorithm 2, as well as several hand fits of the data. We hope that figure \ref{fig:curves}a makes clear what a close to ideal situation looks like, and provide intuition as to why the upper and lower mesh dimension bound the quantity we are trying to measure. Figure \ref{fig:curves}b serves to illustrate some of the problems with making an algorithmic measure of the dimension. There is much less data to work with due to performance constraints, which causes a large amount of noise on the estimate of the mesh dimension. Indeed even fitting this data by hand becomes a challenge and we provide two fits which can both be argued to be "correct". Which of these two represents the quantity we care about depends on the exact system being used and the purpose of the meshes we want to build with the resulting policy.
+
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/meshdim.png}
+    \caption{High resolution curve of a well behaved policy}
+  \end{subfigure}
+%   \begin{subfigure}[b]{0.32\textwidth}
+%     \includegraphics[width=\textwidth]{fig/corl2020/meshdimhand.png}
+%     \caption{Hopper-v2}
+%   \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/meshdimreal.png}
+    \caption{Run time resolution curve of a typical policy}
+  \end{subfigure}
+  \caption{Mesh curve and mesh dimension examples}
+  \label{fig:curves}
+\end{figure}
+
 
 
 % !!! may or may not get included
@@ -132,18 +160,28 @@ The "mesh dimension" is the quantity extracted from the slope of the log log plo
 \end{algorithm}
 
 
+\subsection{Variation Estimators}
+\label{sec:var}
+As discussed, computing the mesh dimension automatically is fraught with peril, in many practical scenarios. But there are also many other, different metrics one might consider, to give various approximations to the fractional dimension we seek to estimate. Gneiting et al.~\cite{Gneiting2012} compare a number of these estimators, and submit that the variation estimator \cite{Emery2005} offers a very good trade off between speed and robustness. To obtain this estimator, first define the power variation of order p as:
+
+\begin{equation}
+P_{p}(X, l) = \frac{1}{(2n-l)}\sum_{i=l}^{n} | X_{i} - X_{i-l}|^{p}
+\end{equation}
+
+Then, we define the variation estimator of order p as:
+
+\begin{equation}
+Dv_{p}(X) = 2 - \frac{\log P_{p}(X,2) - \log P_{p}(X, 1)}{p\log 2}
+\label{eq:var}
+\end{equation}
+
+The \textbf{madogram} estimator is the special case of \eqref{eq:var} where p = 1, and the \textbf{variogram} is where p = 2.
+
+
+
+
 
 % Why not use the thing we actually want to reduce? As we've mentioned, measuring the mesh dimension automatically is tricky (again see implementation details in the appendix). But with the faster meshing, it becomes feasible to use the mesh dimension directly, in the same manner we used the variation dimensions before. Here we introduce a second measure of mesh dimesion, called the "conservative mesh dimension". Recall that the normal mesh dimension is the least squares fit of a line to the log log plot of the mesh size vs the box width. The conservative mesh dimension is defined as the steepest slope found on this graph, simple as! This can be seen as an upper bound on the increases that we can expect while decreasing our mesh size. Table \ref{tab:mesh} shows the dimensions and reward after training.
-
-
-\section{Reinforcement Learning}
-The goal of reinforcement learning is to train an agent acting in an environment to maximize some reward function. At every timestep $t \in \mathbb{Z}$, the agent receives the current state $s_{t} \in R^{n}$, uses that to compute an action $a_{t} \in \mathbb{R}^{b}$, and the receives the next state $s_{t+1}$, which is used to calculate a reward $r : \mathbb{R}^{n} \times \mathbb{R}^{m} \times \mathbb{R}^{n} \rightarrow \mathbb{R}$. The objective is to find a policy  $\pi_{\theta}: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}$
-
-\begin{equation} \argmax_{\theta} \mathop{\mathbb{E}}_{\eta}\left[ \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) \right] \end{equation}
-
-Where $\theta \in \mathbb{R}^{d}$ is a set that parameterizes the policy, and $\eta$ is a parameter representing the randomness in the environment. This includes the random initial conditions for episodes.
-
-
 
 \subsection{Post Processing Rewards}
 
@@ -185,6 +223,8 @@ We examine a subset of the popular OpenAI Mujoco locomotion environments introdu
 
 \subsection{Augmented Random Search}
 
+\todo{may move this to intro or background}
+
  In \cite{Mania2018} Mania et al introduce Augmented Random Search (ARS) which proved to be efficient and effective on the locomotion tasks. Rather than a neural network, ARS used static linear policies, and compared to most modern reinforcement learning, the algorithm is very straightforward. The algorithm operates directly on the policy weights, each epoch the agent perturbs it's current policy N times, and collects 2N rollouts using the modified policies. The rewards from these rollouts are used to update the current policy weights, repeat until completion. The algorithm is known to have high variance; not all seeds obtain high rewards, but to our knowledge their work in many ways represents the state of the art on these benchmarks. Mania et al introduce several small modifications of the algorithm in their paper, our implementation corresponds to the version they call ARS-V2t.
 
 
@@ -211,7 +251,7 @@ We examine a subset of the popular OpenAI Mujoco locomotion environments introdu
 \subsection{Training}
 \label{sec:training}
 
-To keep things simple, we wanted to find one set of hyper parameters for all environments and post processors. These parameters were chosen by hand, with the parameters reported in Table 9 from \cite{Mania2018} as a starting point. We tuned until our unprocessed learning achieved satisfactory results across all tasks. Again, ARS is known to have high variance between random seeds, and some seeds never learn to gather a large reward. The parameters we found are able to consistently solve the cheetah and walker; for the hopper, the algorithm learns a policy with high reward around half the time. This seems consistent with the performance reported in \cite{Mania2018}. We train each postprocessor on 10 random seeds, the evaluation metrics are averages over 5 rollouts from each seed, and for the dimension metrics we use extended episodes of length 10,000 to get a more accurate measurement. The reported returns, and the training, both use the normal 1,000 step episodes. We found that the mesh postprocessors were getting very poor performance when trained from a random policy. However, we found that we saw good results when these trials were initialized with a working policy. Therefore we trained agents for 750 epochs without post processing, and used that to initialize the mesh dimension policies. The mesh policies were then trained for an additional 250 epochs and the results reported.
+ We hadn chose parameters that were found to work well across all environments, with the parameters reported in Table 9 from \cite{Mania2018} as a starting point. We tuned until our unprocessed learning achieved satisfactory results across all tasks. Again, ARS is known to have high variance between random seeds, and some seeds never learn to gather a large reward. The parameters we found are able to consistently solve the cheetah and walker; for the hopper, the algorithm learns a policy with high reward around half the time. This seems consistent with the performance reported in \cite{Mania2018}. We train each postprocessor on 10 random seeds, the evaluation metrics are averages over 5 rollouts from each seed, and for the dimension metrics we use extended episodes of length 10,000 to get a more accurate measurement. The reported returns, and the training, both use the normal 1,000 step episodes. We found that the mesh postprocessors were getting very poor performance when trained from a random policy. However, we found that we saw good results when these trials were initialized with a working policy. Therefore we trained agents for 750 epochs without post processing, and used that to initialize the mesh dimension policies. The mesh policies were then trained for an additional 250 epochs and the results reported.
 %===============================================================================
 
 
@@ -271,6 +311,60 @@ Environment & Postprocessor
 \end{table}
 
 For all environments the mesh post processors had a significant impact on the mesh dimensions. It's important to remember here, the dimensions reported represent lower and upper bounds for the actual mesh dimensions. There was also a corresponding and significant decrease in the unprocessed rewards. However with our meta goal of training agents that have acceptable reward but which are more amenable to meshing, this is a more than acceptable trade. In the case of walker, several seeds (4 for the upper dim., 3 for the lower mesh dim.), "forget how to walk", and learn a policy that stands in place. This certainly has a low dimensionality, but is not very useful, to be complete we include statistics from the seeds that learned a gait, and for all 10 seeds, including the standing policies.
+
+
+\subsection{Variational Postprocessors}
+
+
+\begin{figure}[!htb]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/cheetah.png}
+    \caption{HalfCheetah}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/hopper.png}
+    \caption{Hopper}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/walker.png}
+    \caption{Walker}
+  \end{subfigure}
+  \caption{Reward curves for the variation postprocessors}
+  \label{fig:rews}
+
+\end{figure}
+\begin{table}
+\begin{tabular}{ l|l|l|l|l|l }
+\hline
+Environment & Postprocessor 
+                    & Variogram        & Madogram       & Lower Mesh Dim.   & Return \\ \hline
+\multirow{3}{*}{HalfCheetah-v2} 
+& Identity          & 1.71 $\pm$ .03   & 1.42 $\pm$ .05 &  2.36 $\pm$ .61 & 5545 $\pm$ 593  \\
+& Variogram   & 1.68 $\pm$ .01   & 1.36 $\pm$ .02 &  2.06 $\pm$ .60 & 5136 $\pm$ 851\\
+& Madogram    & 1.65 $\pm$ .02   & 1.31 $\pm$ .04 &  2.09 $\pm$ .64 & 5234 $\pm$ 950\\
+
+\hline
+\multirow{3}{*}{Hopper-v2} 
+& Identity$^{*}$           & 1.61 $\pm$ .14  & 1.22 $\pm$ .28               &  1.03$^{*}$ $\pm$ .71 & 2063 $\pm$ 1052 \\
+& Variogram   &  \textbf{1.51 $\pm$ .02}  & \textbf{1.03 $\pm$ .04}   &  1.58 $\pm$ .54 & 3299 $\pm$ 711 \\
+& Madogram     & \textbf{1.51 $\pm$ .002}  & \textbf{1.02 $\pm$ .004} &  1.57 $\pm$ .36 & 3449 $\pm$ 146\\
+\hline
+\multirow{3}{*}{Walker2d-v2} 
+& Identity           & 1.68 $\pm$ .35  & 1.36 $\pm$ .71 &              2.14 $\pm$ .29 & 3742 $\pm$ 1038\\
+& Variogram    & \textbf{1.54 $\pm$ .07}  & \textbf{1.07 $\pm$ .01} &  1.85 $\pm$ .54 & 3779 $\pm$ 894 \\
+& Madogram     & \textbf{1.53 $\pm$ .01}  & \textbf{1.06 $\pm$ .02} &  1.99 $\pm$ .53 & 3414 $\pm$ 1025\\
+\hline
+\end{tabular}
+\caption{\label{tab:dims} Mesh dimensions and returns for trajectories after training. See \ref{sec:training} for details\\
+\footnotesize{* This includes policies which learned to "stand still", which lowers the average mesh dimension considerably see discussion}
+}
+\end{table}
+
+It seems that the variational postprocessors had a modest effect the variational dimension, but that does not seem to correlate to a smaller mesh dimension, despite what our preliminary tests had led us to believe. The hopper and walker did have remarkable consistency in the variation dimensions they found; possibly this could be used to lower the variance in ARS. The fact that the variogram and madogram also got higher performance on the hopper task could support this claim. However without running many more trials and hyper parameter sweeps, that's not a claim that can be substantiated. These experiments show that 1) measures for fractional dimension can be influenced without adversely effecting the reward, and 2) that it is possible for an agent to shrink it's variogram and madogram dimensions without a large impact on its mesh dimension. 
+
+
+
 
 
 
@@ -471,102 +565,9 @@ In this work, we introduced a technique to influence the fractional dimension of
 
 
 
-\subsection{Variation Estimators}
-\label{sec:var}
-As discussed, computing the mesh dimension automatically is fraught with peril, in many practical scenarios. But there are also many other, different metrics one might consider, to give various approximations to the fractional dimension we seek to estimate. Gneiting et al.~\cite{Gneiting2012} compare a number of these estimators, and submit that the variation estimator \cite{Emery2005} offers a very good trade off between speed and robustness. To obtain this estimator, first define the power variation of order p as:
-
-\begin{equation}
-P_{p}(X, l) = \frac{1}{(2n-l)}\sum_{i=l}^{n} | X_{i} - X_{i-l}|^{p}
-\end{equation}
-
-Then, we define the variation estimator of order p as:
-
-\begin{equation}
-Dv_{p}(X) = 2 - \frac{\log P_{p}(X,2) - \log P_{p}(X, 1)}{p\log 2}
-\label{eq:var}
-\end{equation}
-
-The \textbf{madogram} estimator is the special case of \eqref{eq:var} where p = 1, and the \textbf{variogram} is where p = 2.
-
-
-\subsection{Variational Postprocessors}
-
-
-\begin{figure}[!htb]
-  \centering
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/cheetah.png}
-    \caption{HalfCheetah}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/hopper.png}
-    \caption{Hopper}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{fig/corl2020/data17_rews/walker.png}
-    \caption{Walker}
-  \end{subfigure}
-  \caption{Reward curves for the variation postprocessors}
-  \label{fig:rews}
-
-\end{figure}
-\begin{table}
-\begin{tabular}{ l|l|l|l|l|l }
-\hline
-Environment & Postprocessor 
-                    & Variogram        & Madogram       & Lower Mesh Dim.   & Return \\ \hline
-\multirow{3}{*}{HalfCheetah-v2} 
-& Identity          & 1.71 $\pm$ .03   & 1.42 $\pm$ .05 &  2.36 $\pm$ .61 & 5545 $\pm$ 593  \\
-& Variogram   & 1.68 $\pm$ .01   & 1.36 $\pm$ .02 &  2.06 $\pm$ .60 & 5136 $\pm$ 851\\
-& Madogram    & 1.65 $\pm$ .02   & 1.31 $\pm$ .04 &  2.09 $\pm$ .64 & 5234 $\pm$ 950\\
-
-\hline
-\multirow{3}{*}{Hopper-v2} 
-& Identity$^{*}$           & 1.61 $\pm$ .14  & 1.22 $\pm$ .28               &  1.03$^{*}$ $\pm$ .71 & 2063 $\pm$ 1052 \\
-& Variogram   &  \textbf{1.51 $\pm$ .02}  & \textbf{1.03 $\pm$ .04}   &  1.58 $\pm$ .54 & 3299 $\pm$ 711 \\
-& Madogram     & \textbf{1.51 $\pm$ .002}  & \textbf{1.02 $\pm$ .004} &  1.57 $\pm$ .36 & 3449 $\pm$ 146\\
-\hline
-\multirow{3}{*}{Walker2d-v2} 
-& Identity           & 1.68 $\pm$ .35  & 1.36 $\pm$ .71 &              2.14 $\pm$ .29 & 3742 $\pm$ 1038\\
-& Variogram    & \textbf{1.54 $\pm$ .07}  & \textbf{1.07 $\pm$ .01} &  1.85 $\pm$ .54 & 3779 $\pm$ 894 \\
-& Madogram     & \textbf{1.53 $\pm$ .01}  & \textbf{1.06 $\pm$ .02} &  1.99 $\pm$ .53 & 3414 $\pm$ 1025\\
-\hline
-\end{tabular}
-\caption{\label{tab:dims} Mesh dimensions and returns for trajectories after training. See \ref{sec:training} for details\\
-\footnotesize{* This includes policies which learned to "stand still", which lowers the average mesh dimension considerably see discussion}
-}
-\end{table}
-
-It seems that the variational postprocessors had a modest effect the variational dimension, but that does not seem to correlate to a smaller mesh dimension, despite what our preliminary tests had led us to believe. The hopper and walker did have remarkable consistency in the variation dimensions they found; possibly this could be used to lower the variance in ARS. The fact that the variogram and madogram also got higher performance on the hopper task could support this claim. However without running many more trials and hyper parameter sweeps, that's not a claim that can be substantiated. These experiments show that 1) measures for fractional dimension can be influenced without adversely effecting the reward, and 2) that it is possible for an agent to shrink it's variogram and madogram dimensions without a large impact on its mesh dimension. 
-
-
-
-\subsection{Mesh Dimension Examples}
-
-Figure \ref{fig:curves} illustrates two examples of the curves used to compute the mesh dimension. Recall that to compute the mesh dimension, we choose several values for d, the box length, and for each d construct a mesh using that box size. The x axis of these plots represents the log of the box length used, the y axis represents the log of size of the mesh created. For each curve, we display the lower bound and upper bound for the dimension as computed by algorithm 2, as well as several hand fits of the data. We hope that figure \ref{fig:curves}a makes clear what a close to ideal situation looks like, and provide intuition as to why the upper and lower mesh dimension bound the quantity we are trying to measure. Figure \ref{fig:curves}b serves to illustrate some of the problems with making an algorithmic measure of the dimension. There is much less data to work with due to performance constraints, which causes a large amount of noise on the estimate of the mesh dimension. Indeed even fitting this data by hand becomes a challenge and we provide two fits which can both be argued to be "correct". Which of these two represents the quantity we care about depends on the exact system being used and the purpose of the meshes we want to build with the resulting policy.
-
-
-\begin{figure}
-  \centering
-  \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[width=\textwidth]{fig/corl2020/meshdim.png}
-    \caption{High resolution curve of a well behaved policy}
-  \end{subfigure}
-%   \begin{subfigure}[b]{0.32\textwidth}
-%     \includegraphics[width=\textwidth]{fig/corl2020/meshdimhand.png}
-%     \caption{Hopper-v2}
-%   \end{subfigure}
-  \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[width=\textwidth]{fig/corl2020/meshdimreal.png}
-    \caption{Run time resolution curve of a typical policy}
-  \end{subfigure}
-  \caption{Mesh curve and mesh dimension examples}
-  \label{fig:curves}
-\end{figure}
-
-
 \subsection{Implementation Details}
 
 For performance reasons, the mesh dimension algorithm does not actually create meshes until the mesh size equals the total data size, but rather until the mesh size is 4/5 the total data size. Figure 8a shows a typical mesh curve, and we can see the long tail of values with mesh sizes close to the maximum value. Not much useful information is gained from this and it is wasting time, so we stop early. We do not place the same limitation on the lower size of the mesh, since typically the mesh size hits one much more rapidly, again figure 8a illustrates this. In addition implement a minimum size for d, set to 1e-9 in this work to avoid numerical errors. 
 
 The normalization done during box creation uses a running mean and standard deviation of all states seen so far during training. These stats are saved and used for evaluation as well, we found that the upper mesh dimension is very sensitive to the normalization used, but that the other metrics where not.
+
