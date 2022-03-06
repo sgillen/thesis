@@ -1,25 +1,30 @@
-"""
-The availability of computation as a resource has been growing exponentially since at least the 1970s, and there is every indication that this resource will continue to become cheaper and more available well into the conceivable future. Researchers have been able to leverage the large amounts compute available to better control robotic systems, and advances in computational capacity and algorithmic development continue to open up new domains. One promising manifestation of this is model-free reinforcement learning, a branch of machine learning which allows an agent to interact with its environment and autonomously learn how to maximize some measure of reward. The promise here is to allow researchers to solve problems for systems that are hard to model, and/or that the user doesn't know how to solve themselves.  Recent examples in the context of robotics include controlling a 47 DOF humanoid to navigate a variety of obstacles \cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand \cite{openai_learning_2018}, and allowing a physical quadruped robot to run \cite{hwangbo_learning_2019}, and recover from falls \cite{lee_robust_2019}.
-"""
 
-\section{A History of Reinforcement Learning}
+The availability of computation as a resource has been growing exponentially since at least the 1970s, and there is every indication that this resource will continue to become cheaper and more available well into the conceivable future.
+
+Computerization has already penetrated nearly every aspect of our modern life, yet each year the growth goes on...
+
+How can this resource be leveraged to solve the problems that face our societies today? There are innumerable answers to this question, from climate models, to to the internet which allows for the distribution of all these ideas to an ever expanding segment humanity.  
+
+
+Something something, reinforcement learning something something.
+
+% Over the last decade in particular, the sheer quantity of compute available has allowed for entirely different kinds of 
+
+
+\section{A Brief History of Reinforcement Learning}
 \subsection{Early Reinforcement Learning}
 
-Reinforcement learning can trace its roots to theories about animal cognition 
+In their classic textbook on the subject, Sutton and Barto \cite{Sutton1998} argue that reinforcement learning can trace its roots to theories of animal cognition developed (independently) by Alexander Bain and Lloyd Morgan in the 1800s. The artificial intelligence would start to consider these ideas in the 1950s, with works from Minsky and by Farley and Clark \cite{FarleyC54} \cite{MinskeyPhD} who both developed a neural network machines which could learn by trial and error. Over the next decade we would see the first examples of what would become classic problems for reinforcement learning. In 1959 Samuel would introduce the first computer program which could play checkers \cite{Samuel:1959}, in 1963 a system called MENACE learned to play a game of Tic-Tac-Toe \cite{Michie1963ExperimentsOT}, and in 1968 a system called BOXES was used to balance a cartpole pendulum \cite{michie:boxes}.
 
-""
-According to R. S. Woodworth (1938) the idea of trial-and-error learning goes as far back as the 1850s to Alexander Bain’s discussion of learning by
-“groping and experiment” and more explicitly to the British ethologist and psychologist Conway Lloyd Morgan’s 1894 use of the term to describe his observations of animal behavior. Perhaps the first to succinctly express the essence of trial-and-error learning as a principle of learning was Edward Thorndike:
-""
+Independently, during this same period, the theory of optimal control was developed. Although even today, optimal control and reinforcement learning are seen as separate fields with distinct histories, the two are very closely related. Rather than maximizing a reward, optimal control seeks to minimize some cost function. Obviously these two objectives differ only by a minus sign, and so some \cite{Sutton1998} even consider optimal control to a subset of reinforcement learning. In either case, during this time, Bellman formulated the Markov Decision Process (MDP) \cite{bellman1957markovian} which to this day underpins the theoretical framework of reinforcement learning. In 1960 an algorithm called value iteration was introduced as a method to solve a generic MDPs \cite{howard:dp}. Although value iteration and dynamic programming more generally can theoretically solve any MDP, these methods suffer from what Bellman called the "curse of dimensionality". Essentially the time to solve a problem with these methods grows exponentially with the dimensionality of the problem, this is a problem that plaques us today, and is something we will circle back to many times in later chapters.
 
-These ideas have been applied to artificial intelligence as far back as 1933, where \todo{someone} made a maze solver robots using physical switches. 
-
+From here we can jump ahead to the 1980s, which is arguably when reinforcement learning as we know it today would emerge, In 1983 Barto et.al, would introduce the influential actor critic architecture, which was used to solve a cartpole balancing problem \cite{BartoSA83}. In Watkin's 1989 PhD thesis he presents Q learning, which is the basis for many of the off policy deep reinforcement learning algorithms used today \cite{Watkins:89}. Later in 1992 Williams would introduce REINFORCE, a classic example of a policy gradient algorithm, which has become the the basis for many of the on policy reinforcement algorithms used today \cite{williams1992simple}. Finally we will mention TD-Gammon, in which a reinforcement algorithm was able to play Backgammon at the level of the top humans of the day \cite{Tesauro94}. TD Gammon received much attention from the press, and generated much excitement around the field.
 
 \subsection{Modern Reinforcement Learning}
 
 
 
-Sometimes around 2012 or so, deep neural networks saw a resurgence of interest in the space of supervised learning. This is usually attributed to the success of the work of Alex Krizhevsky who showed that  convolutions neural networks were extremely effective at image classification \cite{NIPS2012_c399862d}.
+Sometimes around 2012 or so, deep neural networks saw a resurgence of interest in the space of supervised learning. This is usually attributed to the success of the work of Alex Krizhevsky who showed that convolutional neural networks were extremely effective at image classification \cite{NIPS2012_c399862d}.
 \todo{Nueral nets have been around forever, we've known they were a universal function approximator early}
 They key insight from that work was that bigger was better, by scaling up the size of the network, and the amount of training data used, deep neural networks became an extremely powerful tool. What makes them so powerful is that you can leverage the vast amount of compute available to us today. Deep learning obviously exploded from there, and it came to dominate reinforcement learning as well. 
 
@@ -28,15 +33,26 @@ They key insight from that work was that bigger was better, by scaling up the si
 
 
   
-    % Only a few years later, we saw a big breakthrough, a team was able to train neural networks to play Atari games at a superhuman level. The input was the raw pixel values from the game, and the reward is the score from the game. This is remarkable for a number of reasons, but it's cool that the same algorithm was able to work successfully across a wide variety of games, which you might think require very different strategies. \cite{mnih2015humanlevel}
-
-
-Probably the most impressive and famous examples have been in the realm of games. An early breakthrough was in 2015, when Mnih1 et. al. showed that DRL could play a wide range of Atari video games using deep reinforcement learning \cite{mnih2015humanlevel}. This is significant for two reasons, this first is that this is a very challenging problem, the agent is tasked to play the game using only pixles as input, and only the score of the game as output. Imagine you are the agent, you are handed an array of 12288 numbers (a 64x64 RGB image), asked to pick an action, and then given a score of zero. This repeats maybe 100 times and then you get a reward of one. Was is the action you picked at timestep 62? was it because entry 10456 had a large value at timestep 3? Figuring this out on it's own is impressive, and using the same algorithm to solve dozens of different games was even more impressive. In 2016 Alpha Go achieved super human performance in the game of Go, which no other approach has been able to do \cite{2017Natur.550..354S}. The same team later released Mu Zero, which surpassed Alpha Go and can also play shogi, chess, and a suite of Atari games, again at superhuman levels \cite{muzero2020}.  . In chess alpha zero crushes the latest version of stockfish, the strongest traditional chess engine, which itself crushes the best human grandmasters.
+    % Only a few years later, we saw a big breakthrough, a team was able to train neural networks to play Atari games at a superhuman level. The input was the raw pixel values from the game, and the reward is the score from the game. This is remarkable for a number of reasons, but it's cool that the same algorithm was able to work successfully across a wide variety of games, which you might think require very different strategies. \cite{mnih2015humanlevel
     
+    % \todo{Ok, definitely don't need all this}
+% This is significant for two reasons, this first is that this is a very challenging problem, the agent is tasked to play the game using only pixles as input, and only the score of the game as output. Imagine you are the agent, you are handed an array of 12288 numbers (a 64x64 RGB image), asked to pick an action, and then given a score of zero. This repeats maybe 100 times and then you get a reward of one. Was is the action you picked at timestep 62? was it because entry 10456 had a large value at timestep 3? Figuring this out on it's own is impressive, and using the same algorithm to solve dozens of different games was even more impressive.
 
+
+
+The next year, in 2013, Minh et. al. introduced learning with Deep Q-Networks (DQN), where they used these same deep convolutional networks to approximate Q functions and play atari games. \cite{minh2013playing}. They would go on to extend those results and just two years later had acheived human level performance on these same tasks. \cite{mnih2015humanlevel}. In that same year, schulman would introduce Trust Region Policy Optimization \cite{schulman_trust_2015}, which is a policy gradient method. Later that year, Lilicrap et. al. would introduce DDPG \cite{lillicrap_continuous_2015} which was inspired by DQN but was able to apply to continuous domains. 
+
+Around this time open AI gym \cite{1606.01540} was made public. This is an API and a set of benchmarking problems which would become extremely influential. Less popular was the deep mind control suite, which performed much the same role but focuses only on continous control in Mujoco \cite{mujoco} \cite{deepmindcontrolsuite2018}.
+
+In 2016 Alpha Go achieved super human performance in the game of Go, which no other approach has been able to do \cite{2017Natur.550..354S}. This received an insane amount of press for some reason. 
+
+\cite{OpenAI_dota} 2017 unveiled, 2018 full team and pro level
+
+\cite{Vinyals2019GrandmasterLI}Starcraft 2019
+
+The same team later released Mu Zero, which surpassed Alpha Go and can also play shogi, chess, and a suite of Atari games, again at superhuman levels \cite{muzero2020}.  . In chess alpha zero crushes the latest version of stockfish, the strongest traditional chess engine, which itself crushes the best human grandmasters.
+    
 \cite{Carpanese2022} Nucluear fusion
-\todo{Dota, Starcraft}
-
 
 
 \todo{A Word on Model Based Reinforcement Learning, Not covered here, but here's what it would be and why it's not relavent} 
@@ -85,45 +101,62 @@ Probably the most impressive and famous examples have been in the realm of games
 
 \section{Reinforcement Learning for Robotics}
 
+
+DRL has been used for physics-based character animation~\cite{2018-TOG-deepMimic}, and a wide variety of complex robotic tasks. This paper focuses primarily on applications in robotics. Continuous control problems in the context of robotics include controlling a 47 degree-of-freedom (DOF) humanoid to navigate various obstacles~\cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand~\cite{openai_learning_2018}, training the quadrupedal ANYmal robot to recover from falls~\cite{lee_robust_2019} \cite{hwangbo_learning_2019}, and teaching the bipedal Cassie robot to navigate stairs blindly~\cite{siekmann2021blind}. Recently I might even argue that DRL has taken over Boston dynamics in terms of robust walking with the recent work by ETH Zurich \cite{anymal2022}.
+
+\subsection{Legged Locomotion}
+
 """
 Legged robots have clear potential to play an important role in our society in the near future. Examples include contact-free delivery during a pandemic, emergency work after an environmental disaster, or as a logistical tool for the military. Legged robots simply expand the reach of robotics when compared to wheeled systems. However, compared to wheeled systems, designing control policies for legged systems is a much more complex task, especially in the presence of disturbances, noise, and unstructured environments.
 """
 
-
-in which DRL has been used for physics-based character animation~\cite{2018-TOG-deepMimic}, and a wide variety of complex robotic tasks. This paper focuses primarily on applications in robotics. Continuous control problems in the context of robotics include controlling a 47 degree-of-freedom (DOF) humanoid to navigate various obstacles~\cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand~\cite{openai_learning_2018}, training the quadrupedal ANYmal robot to recover from falls~\cite{lee_robust_2019} \cite{hwangbo_learning_2019}, and teaching the bipedal Cassie robot to navigate stairs blindly~\cite{siekmann2021blind}. Recently I might even argue that DRL has taken over Boston dynamics in terms of robust walking with the recent work by ETH Zurich \cite{anymal2022}.
-
-\subsection{Legged Locomotion}
 
 There are sort of two schools of thought when it comes to RL for locomotion. There's RL for the animation of physics based characters, which is mostly useful in the context of movies or video games. This is mostly centered in michael v. panns group (\todo{probably}) at 
 Then there is everyone else, who is in it for robotics, or just for pure RL maybe ... 
 
 Google brain, deepmind, openAI, Berkely AI lab, these are the most prolific labs in this space. 
 
-Still need to introduce openAI gym, and dm control suite...
 And also talk about the sort of two schools of thought, character animation and robotic control. 
 
 Here's where we get to the part that introduced me to the topic. In 2017 Deep Mind released some work regarding locomotion policies in simulated environments, they look a little silly, but I thought it was mind blowing at the time, since I was working with a simpler system, and couldn't get it to work at. all. 
 
-Then Deep Mind Mujoco, PPO, Lots of stuff
+better control robotic systems, and advances in computational capacity and algorithmic development continue to open up new domains. One promising manifestation of this is model-free reinforcement learning, a branch of machine learning which allows an agent to interact with its environment and autonomously learn how to maximize some measure of reward. The promise here is to allow researchers to solve problems for systems that are hard to model, and/or that the user doesn't know how to solve themselves. Recent examples in the context of robotics include controlling a 47 degree of freedom humanoid to navigate a variety of obstacles \cite{heess_emergence_2017}, dexterously manipulating objects with a 24 degree of freedom robotic hand, and performing rough terrain locomotion with a quadruped robot \cite{anymal2022}. 
 
 \section{Limitations of Reinforcement Learning}
 
+Despite these impressive results, there remain many limitations that prevent reinforcement learning from seeing wider adoption. For example, there is a lack of any stability or robustness guarantees for trained policies. One can perform monte carlo samples, simply running tests with the trained policies and observing any failure modes. But this is unsatisfying, especially in cases where rare but catastrophic failures can occur, for example a self driving car. If we run the simulation 1000 times and there are no failures do we call our system safe? If not how many trials do we need? and how can we quantify failure rates for such rare events? 
 
-However there are a number of glaring issues I see with the current state of the art in reinforcement learning.
-    - Sample Inefficient \\
-    - Sim 2 real must be solved, for robotics \\ 
-    - Can't trust \\ 
-    - Quantifying Performance is Hard \\ 
-    - It is extremely Brittle  \\ 
-    - Sensitive To Initial Conditions \\ 
-    - Does Terribly in Some Kinds of Problems
+In addition to this, RL algorithms treat their environments as a black box, assuming nothing about the system they are tasked with controlling. This is both a great strength of these algorithm, since it results in RL being extremely general, but is also unsatisfying in the many situation where we as engineers have a lot of domain knowledge that could be leveraged. 
+
+In this thesis we address these limitations by leveraging insights from other fields, primarily control and dynamical systems theory. We show that a model based local controller can be combined with a learned policy to solve a difficult nonlinear control problem that modern RL struggles with. In addition, we show that gradients in new, differentiable simulators can be leveraged by RL algorithms to better control the same class of nonlinear systems. 
+
+We also build on prior work that approximates dynamical systems as discrete Markov chains. This representation allow us to analyze stability and robustness properties of a system. We show that we can modify RL reward functions to encourage locomotion policies that have a smaller Markov chain representation, allowing us to expand the scope of systems that this type of analysis can be applied to. We then use a hopping robotic system as a case study for this type of analysis. Finally, we show the same tools that can shrink the Markov chain size can also be used for more generic fine tuning of RL policies, improving performance and consistency of learned policies across a wide range of benchmarking tasks. 
+
+% However there are a number of glaring issues I see with the current state of the art in reinforcement learning.
+%     - Sample Inefficient \\
+%     - Sim 2 real must be solved, for robotics \\ 
+%     - Can't trust \\ 
+%     - Quantifying Performance is Hard \\ 
+%     - It is extremely Brittle  \\ 
+%     - Sensitive To Initial Conditions \\ 
+%     - Does Terribly in Some Kinds of Problems
     
     
 \section{Structure of this Thesis}
     
-I take some steps to solve this
-
-    I solved the Acrobot, Twice ... Very Cool
+We will now outline the structure for the rest of this thesis. 
     
-    I did some reward post processing on a Markov chain thing
-    Uhh anyway ... 
+\begin{itemize}
+  \item Chapter 2 introduces necessary background and the mathematical preliminaries for the thesis. We formally introduce reinforcement learning and define the Markov Decision Process. Supervised learning, neural networks, and parameterized functions in general are discussed. A more detailed, non historic, outline of the modern reinforcement learning landscape is presented. Finally we discuss the differences between on policy, off policy, and gradient free algorithms, and introduce algorithms which are used in the text. 
+  
+  \item Chapter 3 describes a novel algorithm that combined deep reinforcement learning with a local optimal controller. We then demonstrate this algorithm by solving a challenging nonlinear control problem, and show that it outperforms other state of the art reinforcement learning algorithms in this setting. 
+  
+  \item Chapter 4 introduces meshing, an algorithm to approximate a continuous dynamaical system as a discrete time Markov chain \todo{do I need to introduce markov chains??}. Meshing has been used previously to do stability and robustness analysis for dynamical systems. We introduce a novel reward function for reinforcement learning that incorporates a notion of dimensionality for these systems. We show that ARS can learn policies that minimize this dimensionality, and that this has some nice effects.
+  
+  \item Chapter 5 uses a model hopping system as a test bench for the results from chapter 4. We show that the trajectory wise mesh dimension does indeed extend to reachable state state meshes \todo{yeah that will make sense to people}
+  
+  \item Chapter 6 extends the results from Chapters 4 and 5 to arbitary neural network policies. We then demonstrate that using this method can successfully minimize the dimensionality across a wide range of benchmarking environments.
+  
+  \item Chapter 7 introduces differentiable physics simulators, a new development in the space of robotic simulation. We discuss the difficulties of using gradients from these simulators for control, and then immediately introduce an algorithm that does just that.
+  
+  \end{itemize}
