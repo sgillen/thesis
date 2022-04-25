@@ -63,7 +63,7 @@ There are also several methods that combine a zeroth order optimizer with a loca
 
 % What about model free?
 
-% In my opinion our algorithms is closer to a model free algorithm, it stands to inherent any advantages of those methods, and can be used to augment them.
+% In my opinion our algorithms is loser to a model free algorithm, it stands to inherent any advantages of those methods, and can be used to augment them.
 
 % The objective of model free reinforcement learning is to learn a policy directly in order to maximize some reward.. 
 
@@ -133,9 +133,44 @@ We consider three systems, a classic cartpole pendulum, a double cartpole pendul
     \textbf{M}(\textbf{q})\Ddot{\textbf{q}} + \textbf{C}(\textbf{q},\dot{\textbf{q}})\dot{\textbf{q}} + T_g(\textbf{q})g = \textbf{B}\textbf{u} \label{manipEqn}
 \end{equation}
 
-with M being the inertia matrix, C being the Coriolis matrix, T being a matrix capturing gravitational affects. For these systems u is the torque outputted at each motor, and q is the vector of state variables. In each of these systems, there is a single unstable equilibrium point. Our goal is to swing the system from an initial condition to it's unstable point and the maintain balance there. More details on formulating these environments into an MDP can be found in the appendix. 
+with M being the inertia matrix, C being the Coriolis matrix, T being a matrix capturing gravitational affects. For these systems u is the torque outputted at each motor, and q is the vector of state variables. In each of these systems, there is a single unstable equilibrium point. Our goal is to swing the system from an initial condition to it's unstable point and the maintain balance there. 
 
 It was demonstrated in \cite{Gillen2020CombiningDR} that most DRL struggles with the full version of the Acrobot in particular. It is worth elaborating on that point. Many benchmarking suites (for example, OpenAI's gym \cite{1606.01540}) have underactuated systems like the acrobot or cartpole pendulum, however the tasks are typically either to swing the system up, or to balance it, asking one controller to do both becomes a much more challenging problem. 
+
+
+\subsection{Acrobot}
+The Acrobat is kept relatively simple, the only state variables are the joint angles and velocities, the reward is just the negative squared distance between the goal state and the current state: 
+
+\[r_{a} = -\phi_{1}^{2} - \phi_{2}^{2} \]
+
+With $\phi_{1} = \phi_{2} = 0$ being the upright balanced position with both links straight up.
+
+\subsection{Cartpole Pendulum}
+The cart-pole pendulum is also kept simple, the states are simply the joint angles and velocities, and the reward function is simply the negative square of the pendulum angle, with $\phi_{1}$ = 0 corresponding the the upright position.
+
+\subsection{Inverted Double Cartpole Pendulum}
+
+The double cartpole pendulum is modified from Brax's existing benchmark environments, the only difference is that the initial condition is rotated 180 degrees from the upright. These environments use some reward shaping, adding an an alive bonus as well as some feature extraction. rather than directly feeding in joint angles, both the reward and state variables are fed in as the x,y coordinate for the end of each link. The reward function for the environment is:
+
+\begin{equation} 
+r_{dp} = r_{alive} - r_{distance} - r_{velocity}
+\end{equation}
+
+Where 
+
+\begin{equation}
+r_{alive} = 10 
+\end{equation}
+
+\begin{equation}
+r_{distance} = 0.05x^{2} + (y - y_{des})^{2}
+\end{equation}
+
+\begin{equation}
+r_{velocity} = \dot \phi_{1} + \dot \phi_{2}
+\end{equation}
+
+and $y_{des}$ co-responds to the height of the second link when in the upright position. Put another way, the reward function is an alive bonus minus the euclidean distance between the end of the second link and the goal state. 
 
 %together. In fact the one example of a suite with the swingup and balance task \cite{deepmindcontrolsuite2018} shows that the algorithms they tried on it didn't really work.  
 
@@ -240,122 +275,6 @@ As we have already mentioned, we employ a Gated Recurrent Unit (GRU) network as 
 In addition to this, we use deterministic policies, rather than the stochastic ones usually associated with deep reinforcement learning. Typically in DRL, the policy actually parameters a probability distribution over possible actions. At every time step, one generates a new distribution based on the current state, and then samples from that distribution to select an action. While our algorithm is compatible with stochastic policies of this nature, we instead compute the action directly. We believe this is especially advantageous for systems with unstable and highly sensitive dynamics (like the acrobot, cartpole etc).
 
 
-\section{Results}
-
-For each environment, we ran trials with 8 random seeds. The seeds affect all the sources of randomness during training, of which there are several. The initial value of the policy parameters, the noise added to the policy at the beginning of each iteration, and the initial condition of the simulator at the beginning of each episode. Figure \ref{fig:reward_curves}. For each of these trials we used the GRU controller architecture discussed above, details on layer sizes etc. can be found in the appendix. We report the resulting rewards obtained at the end of in table \ref{tab:results1}. In addition to our own algorithm, we also run comparisons from PPO, SAC, and Brax's implementation of APG (which has some note-able difference from our own, discussed in the appendix). 
-
-
-\begin{figure*}[!h]
-  \centering
-  \begin{subfigure}[b]{0.32\linewidth}
-    \includegraphics[width=\linewidth]{fig/analytic/cartpole_reward_curve.png}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.32\linewidth}
-  \includegraphics[width=\linewidth]{fig/analytic/acrobot_reward_curve.png}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.32\linewidth}
-      \includegraphics[width=\linewidth]{fig/analytic/double_cartpole_reward_curve.png}
-  \end{subfigure}
-  \caption{Reward curves for CE-APG}
-  \label{fig:reward_curves}
-\end{figure*}
-
-\begin{table}[!htb]
-\centering
-\renewcommand{\arraystretch}{1.5}
-\begin{tabular}{|l|l|l|l|}
-\hline 
-Environment   & Pendulum              & Acrobot               & Double Pendulum \\ \hline \hline
-CE-APG (ours)    &   -355$\pm$ 10  &   3053 $\pm$ 458       &   4295 $\pm$ 75\\  \hline
-PPO               &    -464 $\pm$ 223 &    405 $\pm$ 927       &   4249 $\pm$ 549         \\  \hline
-SAC               &    -2274  $\pm$ 1000    &    359 $\pm$ 159      &   -3.9e5 $\pm$ 4.9e6        \\ \hline
-Brax Apg        &    -3485   $\pm$ 819    &     1949 $\pm$ 814       &   -1982 $\pm$ 4056     \\ 
-
-\hline
-\end{tabular}
-\caption{Results of the training on our test environments, we report the mean and standard deviation of rewards obtained from training each algorithm with 8 random seeds}
-\label{tab:results1}
-\end{table}
-
-We can see that across all three environments, our method outperforms the other benchmark algorithms. On the double inverted pendulum we get the same final reward as PPO, exceed it slightly on the cartpole, and get significantly higher reward on the acrobot. In fact for the cart-pole in particular our algorithm significantly outperforms the others. It is worth putting this in context, as it is difficult to understand what a reward of 2000 vs. 3000 really means.
-
-To do this we perform roll-outs with the best performing seeds for both  CE-APG and the best performing benchmark, which was Brax's APG implementation. We perform 10 rollouts with these top performers. For completeness we report the mean and standard deviation of the resulting rewards, CE-APG: 3507 $\pm$ 5, Brax's APG: 2778 $\pm$ 89. However it is much more revealing to visualize one of these roll outs, which we do in figure \ref{fig:rollouts}. We can see that despite comparable total reward, APG does not actually stabilize the system at the equilibrium, likely because it has become stuck in a maxima of the reward landscape. By contrast, our algorithm, augmented by the cross entropy method to avoid such local maxima, manages to find a policy that does stabilize our system. Unsurprisingly given the rewards from table \ref{tab:results1} none of the other systems manage to balance the acrobat either. Of course such stabilization is exactly what we as humans had in mind when defining the environment. 
-
-\begin{figure}[!htb]
-        \centering
-        \includegraphics[width=\linewidth]{fig/analytic/rollouts.png}
-        \caption{Best performing seeds for CE-APG vs APG on the Acrobot. Despite comparable total reward, APG does not actually stabilize the system at the equilibrium, likely because it has become stuck in a maxima of the reward landscape. By contrast our algorithm, augmented by the cross entropy method to avoid such local maxima, manages to find a policy that does stabalize our system}
-        \label{fig:rollouts}
-\end{figure}
-% \begin{figure}[!htb]
- 
-%     \includegraphics[width=.6\linewidth]{fig/analytic/ce-apg_acrobot.png}
-%     \caption{}
-  
-% \end{figure}
-
-% \begin{figure}[!htb]
- 
-%     \includegraphics[width=.6\linewidth]{fig/analytic/ppo_acrobot.png}
-%     \caption{}
-  
-% \end{figure}
-
-
-
-
-% What about the double inverted pendulum? which included some reward shaping? Well the story is largely the same, let's look at figure 
-
-% \begin{figure}[!htb]
-% \captionsetup[subfigure]{labelformat=empty}
-%         \centering
-%         \subfloat[]{\label{sublable1}\includegraphics[width=0.6\linewidth]{fig/analytic/ce-apg_acrobot.png}} \\
-%         \subfloat[]{\label{sublable2}\includegraphics[width=0.6\linewidth]{fig/analytic/ppo_acrobot.png}}
-%         \caption{Best performing seeds for CE-APG vs PPO on the Acrobot. As we can see CE-APG stabalizes the system at the equilibrium, whereas PPO does not}
-% \end{figure}
-
-
-
-
-
-\section{Ablation Studies}
-
-In addition to the comparisons done above, we also conducted several ablation studies, this isolates the effect of our implementation of APG from the results presented above. We conducted experiments using only the gradient free CEM method, with no analytic policy gradients being used. And also compared to our implementation of APG, which we are calling PAPG for parallel APG. This essentially means that we run APG N times in parallel, and picking the best result to return. In both cases we still used the GRU controller architecture as before. In the case of CEM we used 2000 iterations for every environment, which we found to be well past the point of convergence. For APG we used 200*100 iterations, which results in the same number of environment interactions to CE-APG. The results are shown in table \ref{tab:ablation}.
-
-\begin{table}[!htb]
-\centering
-\renewcommand{\arraystretch}{1.5}
-\begin{tabular}{|l|l|l|l|}
-\hline 
-Environment         & Pendulum            & Acrobot & Double Pendulum \\ \hline \hline
-CE-APG (ours)    &   -355$\pm$ 10         &   3053 $\pm$ 458       &   4295 $\pm$ 75\\  \hline
-PAPG             &    -1034 $\pm$ 208     &   2456 $\pm$ 647       &  2335 $\pm$ 431  \\ \hline
-CEM              &    -3019 $\pm$ 559     &   626 $\pm$ 160        &  -2.7e5 $\pm$ 7.6e5  \\ \hline
-
-\hline
-\end{tabular}
-\caption{Results of our ablation studies. We report the mean and standard deviation of rewards obtained from training each algorithm with 8 random seeds}
-\label{tab:ablation}
-\end{table}
-
-
-As we can see, the performance of either method individually is generally poor, though we do see that PAPG does about as well as the best agent from the APG results reported in table \ref{tab:results1}, however when we perform rollouts the resulting policies exhibit the same behavior shown in figure \ref{fig:rollouts}, that is they continuously spin, spending as much time as they can near the goal state, but never settling there.
-
-
-\section{Discussion and future work}
-
-    We have shown that analytic policy gradients can be leveraged effectively for at least one class of system, nonlinear underacted systems with unstable target states. This is a limited scope of problems, but it is interesting because other modern DRL algorithms struggle with such systems. However, we are as of yet unable to get our algorithm to perform well in contact rich environments, likely because the contacts introduce huge variance into the gradients. As of writing, there is active work in the community to make Brax friendlier to analytic gradient based algorithms, in particular adding soft contacts, which may very well help a lot. 
-    
-    In addition, the sample complexity of our algorithm is comparable to other on policy DRL algorithm, and is behind what we might expect from off policy algorithms. However there are many algorithmic improvements could be made, for example importance sampling has been found to improve the sample efficiency of CEM by up to a factor of 10. We are currently unable to effectively implement this due technical limitations in the way we implement parallelization. 
-\section{Conclusion} 
-\label{sec:conclusion}
-
-In conclusion, we presented Cross Entropy Analytic Policy Gradients, an algorithm that can exploit analytic gradients. We covered some relevant background, introduced our method, and placed it in the broader context. We then presented our algorithm and the environments we used for testing. We presented results of our algorithm compared to state of the art baselines, and performed ablation studies. We then contextualized the rewards obtained on Acrobat in particular. This demonstrated that our algorithm was able to successfully stabilize the system, whereas the baseline algorithms where not. We think this algorithm shows that analytic policy gradients can be leveraged productively in at least context.
-%\section*{Acknowledgments}
-
-
-
-\section{Appendix}
 
 \subsection{Implementation Details}
 There are some notable differences between our implementation of APG (which we call PAGP for parallel apg) and the implementation of APG provided Brax. First, we use different controller architectures, our method uses a deterministic GRU, and theirs  uses a stochastic multi layer perceptron. Furthermore the parellization characteristics are quite different, the Brax implementation of APG was designed for use with a TPU, and thus performs hundreds or thousands of rollouts in parallel for every update step. We note that we found the performance of CE-APG to be significantly faster on CPU compared to GPU/TPU.
@@ -439,41 +358,121 @@ Brax-APG Hyperparameter & Value \\
 
 
 
-\section{Environment Details}
 
-\subsection{Acrobat}
-The Acrobat is kept relatively simple, the only state variables are the joint angles and velocities, the reward is just the negative squared distance between the goal state and the current state: 
 
-\[r_{a} = -\phi_{1}^{2} - \phi_{2}^{2} \]
 
-With $\phi_{1} = \phi_{2} = 0$ being the upright balanced position with both links straight up.
+\section{Results}
 
-\subsection{Cartpole Pendulum}
-The cart-pole pendulum is also kept simple, the states are simply the joint angles and velocities, and the reward function is simply the negative square of the pendulum angle, with $\phi_{1}$ = 0 corresponding the the upright position.
+For each environment, we ran trials with 8 random seeds. The seeds affect all the sources of randomness during training, of which there are several. The initial value of the policy parameters, the noise added to the policy at the beginning of each iteration, and the initial condition of the simulator at the beginning of each episode. Figure \ref{fig:reward_curves}. For each of these trials we used the GRU controller architecture discussed above, details on layer sizes etc. can be found in the appendix. We report the resulting rewards obtained at the end of in table \ref{tab:results1}. In addition to our own algorithm, we also run comparisons from PPO, SAC, and Brax's implementation of APG (which has some note-able difference from our own, discussed in the appendix). 
 
-\subsection{Inverted Double Cartpole Pendulum}
 
-The double cartpole pendulum is modified from Brax's existing benchmark environments, the only difference is that the initial condition is rotated 180 degrees from the upright. These environments use some reward shaping, adding an an alive bonus as well as some feature extraction. rather than directly feeding in joint angles, both the reward and state variables are fed in as the x,y coordinate for the end of each link. The reward function for the environment is:
+\begin{figure*}[!h]
+  \centering
+  \begin{subfigure}[b]{0.32\linewidth}
+    \includegraphics[width=\linewidth]{fig/analytic/cartpole_reward_curve.png}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\linewidth}
+  \includegraphics[width=\linewidth]{fig/analytic/acrobot_reward_curve.png}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\linewidth}
+      \includegraphics[width=\linewidth]{fig/analytic/double_cartpole_reward_curve.png}
+  \end{subfigure}
+  \caption{Reward curves for CE-APG}
+  \label{fig:reward_curves}
+\end{figure*}
 
-\begin{equation} 
-r_{dp} = r_{alive} - r_{distance} - r_{velocity}
-\end{equation}
+\begin{table}[!htb]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|l|l|l|l|}
+\hline 
+Environment   & Pendulum              & Acrobot               & Double Pendulum \\ \hline \hline
+CE-APG (ours)    &   -355$\pm$ 10  &   3053 $\pm$ 458       &   4295 $\pm$ 75\\  \hline
+PPO               &    -464 $\pm$ 223 &    405 $\pm$ 927       &   4249 $\pm$ 549         \\  \hline
+SAC               &    -2274  $\pm$ 1000    &    359 $\pm$ 159      &   -3.9e5 $\pm$ 4.9e6        \\ \hline
+Brax Apg        &    -3485   $\pm$ 819    &     1949 $\pm$ 814       &   -1982 $\pm$ 4056     \\ 
 
-Where 
+\hline
+\end{tabular}
+\caption{Results of the training on our test environments, we report the mean and standard deviation of rewards obtained from training each algorithm with 8 random seeds}
+\label{tab:results1}
+\end{table}
 
-\begin{equation}
-r_{alive} = 10 
-\end{equation}
+We can see that across all three environments, our method outperforms the other benchmark algorithms. On the double inverted pendulum we get the same final reward as PPO, exceed it slightly on the cartpole, and get significantly higher reward on the acrobot. In fact for the cart-pole in particular our algorithm significantly outperforms the others. It is worth putting this in context, as it is difficult to understand what a reward of 2000 vs. 3000 really means.
 
-\begin{equation}
-r_{distance} = 0.05x^{2} + (y - y_{des})^{2}
-\end{equation}
+To do this we perform roll-outs with the best performing seeds for both  CE-APG and the best performing benchmark, which was Brax's APG implementation. We perform 10 rollouts with these top performers. For completeness we report the mean and standard deviation of the resulting rewards, CE-APG: 3507 $\pm$ 5, Brax's APG: 2778 $\pm$ 89. However it is much more revealing to visualize one of these roll outs, which we do in figure \ref{fig:rollouts}. We can see that despite comparable total reward, APG does not actually stabilize the system at the equilibrium, likely because it has become stuck in a maxima of the reward landscape. By contrast, our algorithm, augmented by the cross entropy method to avoid such local maxima, manages to find a policy that does stabilize our system. Unsurprisingly given the rewards from table \ref{tab:results1} none of the other systems manage to balance the acrobat either. Of course such stabilization is exactly what we as humans had in mind when defining the environment. 
 
-\begin{equation}
-r_{velocity} = \dot \phi_{1} + \dot \phi_{2}
-\end{equation}
+\begin{figure}[!htb]
+        \centering
+        \includegraphics[width=\linewidth]{fig/analytic/rollouts.png}
+        \caption{Best performing seeds for CE-APG vs APG on the Acrobot. Despite comparable total reward, APG does not actually stabilize the system at the equilibrium, likely because it has become stuck in a maxima of the reward landscape. By contrast our algorithm, augmented by the cross entropy method to avoid such local maxima, manages to find a policy that does stabilize our system}
+        \label{fig:rollouts}
+\end{figure}
+% \begin{figure}[!htb]
+ 
+%     \includegraphics[width=.6\linewidth]{fig/analytic/ce-apg_acrobot.png}
+%     \caption{}
+  
+% \end{figure}
 
-and $y_{des}$ co-responds to the height of the second link when in the upright position. Put another way, the reward function is an alive bonus minus the euclidean distance between the end of the second link and the goal state. 
+% \begin{figure}[!htb]
+ 
+%     \includegraphics[width=.6\linewidth]{fig/analytic/ppo_acrobot.png}
+%     \caption{}
+  
+% \end{figure}
+
+
+
+
+% What about the double inverted pendulum? which included some reward shaping? Well the story is largely the same, let's look at figure 
+
+% \begin{figure}[!htb]
+% \captionsetup[subfigure]{labelformat=empty}
+%         \centering
+%         \subfloat[]{\label{sublable1}\includegraphics[width=0.6\linewidth]{fig/analytic/ce-apg_acrobot.png}} \\
+%         \subfloat[]{\label{sublable2}\includegraphics[width=0.6\linewidth]{fig/analytic/ppo_acrobot.png}}
+%         \caption{Best performing seeds for CE-APG vs PPO on the Acrobot. As we can see CE-APG stabalizes the system at the equilibrium, whereas PPO does not}
+% \end{figure}
+
+
+
+
+
+\section{Ablation Studies}
+
+In addition to the comparisons done above, we also conducted several ablation studies, this isolates the effect of our implementation of APG from the results presented above. We conducted experiments using only the gradient free CEM method, with no analytic policy gradients being used. And also compared to our implementation of APG, which we are calling PAPG for parallel APG. This essentially means that we run APG N times in parallel, and picking the best result to return. In both cases we still used the GRU controller architecture as before. In the case of CEM we used 2000 iterations for every environment, which we found to be well past the point of convergence. For APG we used 200*100 iterations, which results in the same number of environment interactions to CE-APG. The results are shown in table \ref{tab:ablation}.
+
+\begin{table}[!htb]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|l|l|l|l|}
+\hline 
+Environment         & Pendulum            & Acrobot & Double Pendulum \\ \hline \hline
+CE-APG (ours)    &   -355$\pm$ 10         &   3053 $\pm$ 458       &   4295 $\pm$ 75\\  \hline
+PAPG             &    -1034 $\pm$ 208     &   2456 $\pm$ 647       &  2335 $\pm$ 431  \\ \hline
+CEM              &    -3019 $\pm$ 559     &   626 $\pm$ 160        &  -2.7e5 $\pm$ 7.6e5  \\ \hline
+
+\hline
+\end{tabular}
+\caption{Results of our ablation studies. We report the mean and standard deviation of rewards obtained from training each algorithm with 8 random seeds}
+\label{tab:ablation}
+\end{table}
+
+
+As we can see, the performance of either method individually is generally poor, though we do see that PAPG does about as well as the best agent from the APG results reported in table \ref{tab:results1}, however when we perform rollouts the resulting policies exhibit the same behavior shown in figure \ref{fig:rollouts}, that is they continuously spin, spending as much time as they can near the goal state, but never settling there.
+
+\section{Discussion and future work}
+
+    We have shown that analytic policy gradients can be leveraged effectively for at least one class of system, nonlinear underacted systems with unstable target states. This is a limited scope of problems, but it is interesting because other modern DRL algorithms struggle with such systems. However, we are as of yet unable to get our algorithm to perform well in contact rich environments, likely because the contacts introduce huge variance into the gradients. As of writing, there is active work in the community to make Brax friendlier to analytic gradient based algorithms, in particular adding soft contacts, which may very well help a lot. 
+    
+    In addition, the sample complexity of our algorithm is comparable to other on policy DRL algorithm, and is behind what we might expect from off policy algorithms. However there are many algorithmic improvements could be made, for example importance sampling has been found to improve the sample efficiency of CEM by up to a factor of 10. We are currently unable to effectively implement this due technical limitations in the way we implement parallelization. 
+\section{Conclusion} 
+\label{sec:conclusion}
+
+In conclusion, we presented Cross Entropy Analytic Policy Gradients, an algorithm that can exploit analytic gradients. We covered some relevant background, introduced our method, and placed it in the broader context. We then presented our algorithm and the environments we used for testing. We presented results of our algorithm compared to state of the art baselines, and performed ablation studies. We then contextualized the rewards obtained on Acrobat in particular. This demonstrated that our algorithm was able to successfully stabilize the system, whereas the baseline algorithms where not. We think this algorithm shows that analytic policy gradients can be leveraged productively in at least context.
+%\section*{Acknowledgments}
+
 
 % \begin{equation}
 % y = \sin(\phi_{1}) + \sin(\phi_{2})

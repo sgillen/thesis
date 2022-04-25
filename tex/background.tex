@@ -1,103 +1,143 @@
 \section{Reinforcement Learning}
+
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=\linewidth]{fig/dissertation/RL_sutton.png}
-    \caption{The classic picture from Sutton and Barto that everyone seems to steal without attribution}
+    \includegraphics[width=.8\linewidth]{fig/dissertation/my_rl_thing.png}
+    \caption{A diagram showing the essential parts of a Markov Decision Process (MDP).}
     \label{fig:r}
 \end{figure}
 
-What is reinforcement learning? Let's introduce the basic terminology first, we will formalize this later. An agent takes actions in an environment in order to maximize a reward. The environment is described by a state, which can be observed (sometimes only partially) by the agent. One example might be a chess playing program, the state is the position of the pieces on the board, the action the their move on the current term, and their reward is a one when they win the game and a zero otherwise. Or maybe the agent is a robot, whose states are joint angles and velocities, whos actions are motor commands, and whos reward function is their forward velocity. Another example might be a motor inside that very robot, it's state might include a motor command and a measurement of the current motor position, and it's output might be a voltage signal.
+ Reinforcement learning concerns an agent taking actions in an environment in order to maximize some reward function. The environment is described by a state that can be observed by the agent. One example might be a chess playing program. The state is the position of the pieces on the board, the action is the move on the current turn, and their reward is plus one on any turn when they win the game, a minus one on a turn where they lost the game, or a zero otherwise. Or maybe the agent is a robot, the states are joint angles and velocities, the action a vector of motor commands, and the reward function is equal to their forward velocity. As these examples hopefully illustrate, reinforcement learning is extremely general, and can and has been applied to a myriad of problems across a number of domains. 
 
-As these examples hopefully illustrate, reinforcement learning is extremely general, and can and has been applied to a myriad of problems across a number of domains. 
+\subsubsection{The Markov Decision Process}
 
-A history of reinforcement learning... Do I need this? 
-I can just present the state of the art here to compare to what I did. And I can do that in chronological order
-
-Definition and Problem Statement, maybe some early victories
-\todo{Also need to indtroduce Q function and Value functions}
-
-In reinforcement learning, the goal is to train an agent, acting in an environment, to maximize some reward function. The environment is a discrete time dynamical system described by state $s_{t} \in \mathbb{R}^{n}$ and the current action $a_{t} \in \mathbb{R}^{b}$. an evolution function $f: \mathbb{R}^{n} \times \mathbb{R}^{b} \rightarrow \mathbb{R}^{n}$ takes as input the current state and action, and outputs the state at time t+1:
+More formally, the environment is a discrete time dynamical system described by state  $s_{t} \in \mathbb{R}^{n}$ \footnote{Although in general a case one might have a discrete set for their states and actions, in the rest of this thesis, for simplicity and brevity, we will assume states, actions, and rewards are all real numbers.} and the current action $a_{t} \in \mathbb{R}^{b}$. We also introduce $\eta$, a parameter that captures any stochastic behavior in the environment and policy. An evolution function $f: \mathbb{R}^{n} \times \mathbb{R}^{b} \times \mathbb{R} \rightarrow \mathbb{R}^{n}$ takes as input the current state, action, and $\eta$, and outputs the state at time t+1:
 
 
 \begin{equation}
-s_{t+1}= f(s_{t},a_{t})
+s_{t+1}= f(s_{t},a_{t},\eta)
 \end{equation} 
 
-The controller is the function we are learning $g: \mathbb{R}^{n} \times \mathbb{R}^{\norm{\theta}} \rightarrow \mathbb{R}^{m}$ such that:
+
+The policy, sometimes called the controller, is a function $\pi$ parameterized by a vector $\theta$. The policy is a function which maps states to actions $\pi: \mathbb{R}^{n} \times \mathbb{R} \rightarrow \mathbb{R}^{m}$ such that:
 
 \begin{equation}
-a_{t} = g(s_{t}, \theta)
+a_{t} = \pi_{\theta}(s_{t}, \eta)
 \end{equation} 
 
-The goal is to maximize a reward function $r : \mathbb{R}^{n} \times \mathbb{R}^{m} \times \mathbb{R}^{n} \rightarrow \mathbb{R}$. We consider the finite time undiscounted reward case. The objective function then is:
+In general $\pi$ may be stochastic, in which case the underlying object being parameterized is a probability distribution, which is sampled from at every time-step to get the current action.
 
+We also define a scalar reward function $r : \mathbb{R}^{n} \times \mathbb{R}^{m} \times \mathbb{R}^{n} \rightarrow \mathbb{R}$. 
+
+We use the term policy rollout to refer to initializing the system to some state $s_{0}$, and then letting it evolve under policy $\pi_{\theta}$. We can define the return R, as the sum of rewards from a given rollout: 
 \begin{equation} 
-R(\theta) =  \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) 
+R_{\theta} =  \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}).
+\end{equation}
+The goal is to find a set of weights $\theta^{*}$ that maximize our expected reward:
+ \begin{equation} 
+ \theta^{*} = \argmax_{\theta} \mathop{\mathbb{E}}_{\eta}\left[ \sum_{t=0}^{T}r(s_{t}, a_{t}, s_{t+1}) \right]. \end{equation}
+Taken together, the transition function, the reward function, and the sets of possible states and actions define a Markov Decision Process (MDP).
+
+
+\subsubsection{Value and Q Functions}
+
+In reinforcement learning it is often useful to examine so-called value functions. The value function $V_{\pi} : \mathbb{R}^{n} \rightarrow \mathbb{R}$ gives us the expected return from a given initial state assuming actions are taken according to the policy $\pi$. Thus
+\begin{equation}
+    V^{\theta}(s) = \mathop{\mathbb{E}}_{\eta}\left[ \sum_{t=0}^{T} r(s_{t}, a_{t}, s_{t+1})  | s_{0} = s\right].
+\end{equation}
+Related to this is the optimal value function, $V^*$, which is the expected return if the system is initialized in state $s_{0}$ and then takes actions according to the optimal policy, $\pi^*$:
+\begin{equation}
+    V^{*}(s) = \max_{\theta} \mathop{\mathbb{E}}_{\eta} \left[ \sum_{t=0}^{T} r(s_{t}, a_{t}, s_{t+1})  | s_{0} = s\right].
 \end{equation}
 
+The Q function is very similar. It describes the expected return if we initialize the system to state $s_{0}$, take action $a_{0}$, which may or may not come from the current policy, and then forever after take actions according to the policy described by $\theta$:
+\begin{equation}
+    Q^{\theta} =  \mathop{\mathbb{E}}_{\eta}\left[ \sum_{t=0}^{T} r(s_{t}, a_{t}, s_{t+1})  | s_{0} = s, a_{0} = a\right].
+\end{equation}
+The optimal Q function is the same thing but using the optimal policy rather than the current policy. 
+\begin{equation}
+    Q^{*}(s) = \max_{\theta} \mathop{\mathbb{E}}_{\eta} \left[ \sum_{t=0}^{T} r(s_{t}, a_{t}, s_{t+1})  | s_{0} = s, a_{0} = a\right]
+\end{equation}
 
-Then REINFORCE
-
-REINFORCE is the OG policy gradient algorithm, it's pretty old and influential. \todo{I need to introduce policy gradients here I guess}
-
-Then some stuff I don't care about
 
 \section{Parameterized Functions and Neural Networks}
 
-It's worth taking a second here and talking about so called function approximators and neural networks, because otherwise the rest of this paper won't make any sense. A function approximator is really just a function which has tunable parameter in addition to inputs and outputs. In controls or reinforcement learning, we usually just call these "parameterized policies". Let's look at a simple example, third order polynomial with coefficients $a_{0}$, $a_{1}$, and $a_{2}$
-
+In the context of robot learning for control, we are usually studying so-called parameterized control policies. In addition to normal inputs and outputs, these functions also have an additional input $\theta$, which is a vector of the that defines the function. Though strictly speaking a parameterized function is a function of both $\theta$ and x, we often put the parameters in the subscript. Let's look at a simple example, a third order polynomial with coefficients $\theta_{0}$, $\theta_{1}$, and $\theta_{2}$:
 \begin{equation}
 \label{eq:poly}
-    y = a_{0} + a_{1}x + a_{2}x^{2}
+    y = f_{\theta}(x) = \theta_{0} + \theta_{1}x + \theta_{2}x^{2}.
+\end{equation}
+At risk of belaboring the point, the equation above has an input (x), and an output (y) but also parameters ($\theta$). When we speak of learning or training a policy, we are trying to find a set of parameters which produce a function that maximizes our expected return. 
+
+\subsubsection{Static Linear Policies}
+
+The first and most straightforward policy class we refer to often in this thesis are ``static linear policies". In this case the  vector $\theta$ parameterizes an n x m weight matrix, W:
+\begin{equation}
+    W = \begin{bmatrix}
+            \theta_{1} & \theta_{2} & \cdots & \theta_{m} \\
+            \theta_{m+1} & \theta_{m+2} & \cdots & \theta_{2m} \\
+            \vdots \\
+            \theta_{m(n-1)} & \theta_{m(n-1)+1}  & \cdots & \theta_{m*n}
+            
+        \end{bmatrix}.
 \end{equation}
 
-At risk of belaboring the point, the equation above has an input (x), and output(y) but also parameters($a$). In function approximation, we typically have data from an unknown function, often sampled from a physical system, and we wish to solve for parameters such that our function approximator best matches the output of the target function. 
+This defines a deterministic policy, the action is computed with a simple matrix multiply with the weight matrix:
+\begin{equation}
+a_{t} = W^{\top}s_{t}.
+\end{equation}
 
-One of the most successful and popular function approximators, especially in recent years, have been neural networks. These come in many flavors, multilayers perecptrons (MLPs), convolutional neural networks (CNNs), long short term memories (LSTM) and Gated Recurrent Units (GRUs).
+This policy is static in the sense that the weight matrix does not change with each time step. It is linear because each element of the action vector is a linear combination of the state vector. As discussed in the literature review, these policies are surprisingly expressive, capable of producing complex gaits in legged robotic systems. In the context of modern reinforcement learning, these sorts of linear policies are usually trained with some type of direct policy search, like ARS or ES, however there is also absolutely nothing stopping you from applying back propagation to train a linear policy, just like we do for neural networks.
 
-Let's examine the MLP first in particular, which is the most common especially for control applications. We can see a diagram for an MLP in figure \ref{fig:mlp}
+
+\subsubsection{Neural Networks}
+
+One of the most successful and popular class of policies, especially in recent years, have been neural networks \footnote{You will often hear neural networks called function approximators, which was indeed their original purpose. In the context of function approximation, we have data from an unknown function, often sampled from a real world system, and we wish to solve for parameters such that the output of our function closely matches the output of the target function. We will use neural networks for this in Chapter~\ref{chap:p1}, but otherwise use them as policies.}. Neural networks can trace their history to the very dawn of computing, and were inspired by biological neurons. However for our purposes we can focus on the types of networks commonly used today, and consider them a class of parameterized policies. 
+
+Modern neural networks come in many flavors, from the basic multi-layer perceptrons (MLPs), to the  deep convolutional neural networks (CNNs) used for computer vision, to the long short-term memories (LSTM) and Gated Recurrent Units (GRUs) that are common in natural language processing. When these networks are large, we call them "deep" neural networks, although even networks with only two or three layers are often called deep. 
+
 
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=.8\linewidth]{fig/dissertation/mlp.png}
-    \caption{A very simple MLP}
+    \caption{A stochastic MLP policy. The input is the state at time $t$, and the outputs are the mean and standard deviation for a Gaussian distribution. This distribution is then used from to generate the control action.}
     \label{fig:mlp}
 \end{figure}
 
-The outut is computed as follows: \todo{blah blah}
+Let's examine the MLP in particular, which is the most common for control applications. We can see a diagram for an MLP in Figure \ref{fig:mlp}. The MLP, as the name suggests, consists of multiple layers. The output for each layer is as follows:
+\begin{equation}
+ x_{l} = \sigma(W_{l}^{\top}x_{l-1} + b_{l}),
+\end{equation}
+with $x_{l-1}$ being the output of the previous layer (with $x_{0}$ being the initial input), $W_{l}$ being the weight matrix for layer l, $b_{l}$ being a vector of bias terms for layer l, and $\sigma$ being some nonlinear activation function. 
 
-So essentially, we do a big matrix multiply of the weights, a vectorized nonlinearity on the result, a new matrix multiply with the next layer weights, repeat. 
-
-Cool, another thing worth noting is that for most modern DRL, the thing we are parameterizing is actually a probability over actions rather than directly mapping to actions. So if we have an action space of size three then our network may have 6 outputs, 3 means and 3 standard deviations for normal distributions over the actions. When it is time to select an action, we sample from this distribution. 
+For most but not all modern RL, the mathematical object we are parameterizing is actually a probability over actions rather than a direct mapping to actions. So if we have an action space of size three then our network may have 6 outputs, 3 means and 3 standard deviations which themselves parameterize a Gaussian distribution. When it is time to select an action, we sample from this distribution. 
 
 \section{Deep Learning and Supervised Learning}
 
-Supervised learning is when you learn by example. For example classifying images as either dogs or cats. This is done with backpropogation and a certain loss
+If reinforcement learning is learning by trial and error, supervised learning is learning by example. The most famous examples are probably classifying images, for example deciding if a given image contains either a dog or cat. In the context of deep learning, we are training a deep neural network, typically with a process called backpropogation. A full explanation of backpropogation is outside the scope of this thesis, but it is sufficient to say that back-prop is an algorithm that allows for the efficient training of differentiable, parameterized functions. 
 
-o train the gating network we minimize the binary cross entropy loss:
+In supervised learning, rather than maximizing a reward, we are attempting to minimize some loss function. This could be a simple L2 norm, but a more common loss in practice is the cross-entropy loss, which is used for classification tasks. This loss is designed to reduce classification error in supervised learning tasks. The binary cross-entropy loss, which will also be used in Chapter \ref{chap:p1}, is shown below. Here,
+\begin{dmath}L^{\text{G}} =  \mathop{\mathbb{E}}_{\gamma} -\left[ c_{w} y_{i}\log(G_{\gamma}(s_{i})) + (1 - y_{i})\log(1 - G_{\gamma}(s_{i})) \right],\end{dmath} 
+where $y_{i}$ is the class label for the i$^th$ sample, and $c_{w}$ is a class weight for positive examples. We set $c_{w} = \frac{n_{t}}{n_{p}}w $ where $n_{t}$ is the total number of samples, $n_{p}$ is the number of positive examples, and $w$ is a manually chosen weighting parameter.
 
-\begin{dmath}L^{\text{G}} =  \mathop{\mathbb{E}}_{\gamma} -\left[ c_{w} y_{i}\log(G_{\gamma}(s_{i})) + (1 - y_{i})\log(1 - G_{\gamma}(s_{i})) \right]\end{dmath} 
-
-Where $y_{i}$ is the class label for the ith sample, $c_{w}$ is a class weight for positive examples. we set $c_{w} = \frac{n_{t}}{n_{p}}w $ where $n_{t}$ is the total number of samples, $n_{p}$ is the number of positive examples, and $w$ is a manually chosen weighting parameter to encourage learning a conservative basin of attraction.
-
-As discussed in the introduction, deep supervised learning really took off starting around 2012. 
 
 
 \section{Modern Reinforcement Learning}
-\todo{Might do one example each? Policy Gradient, SAC, then ARS?}
 
-\subsection{Off Policy RL}    
+Reinforcement learning can be divided into model-based and model-free algorithms. Model-based algorithms typically learn a model of the system they are trying to control, and then use that model to do planning or model predictive control. A popular example is the PILCO algorithm \cite{deisenroth2011pilco}. These algorithms certainly have their place; however, they are typically limited to relatively low-dimensional systems, and they often require expensive planning at run time. This thesis focuses on model-free algorithms, which are more popular and have seen more development over the past decade. 
+
+Model-free algorithms, despite their name, can and do develop models of the system they are controlling, especially in the form of Q and value functions. The difference is that they do not attempt to use these models to do any sort of planning. Instead, they are directly optimizing a parameterized policy which will (indirectly) induce some trajectory, not planning a trajectory and then working backwards.
+
+
+\subsection{Off-Policy RL}    
     
-We can further divide up DRL into on policy and off policy algorithms. On policy algorithms use only data obtained with the under the current policy to make policy updates. After an update it essentially throws out the data obtained so far and starts afresh. Examples of this include the classic REINFORCE, A2C, TPRO and PPO. Off policy algorithms by contrast use data obtained by previous policies to continue updating. This usually takes the form of a "replay buffer" which stores state, action, and reward tuples obtained so far during training. These tuples can then be used to update the current policy. Off policy algorithms are often a variant of Q learning, since the Q function in reinforcement learning  does not require the current action, it is well suited to off policy learning. 
+We can further divide modern reinforcement learning into on-policy and off-policy algorithms. Off-policy algorithms train the current policy using data obtained from previous policies. This usually takes the form of a "replay buffer" which stores state, action, and reward tuples obtained so far during training. These tuples can then be used to update the current policy. Off-policy algorithms are often a variant of Q learning, since Q functions can be learned with actions drawn from any distribution, not just the current policy. DQN, DDPG, TD3, and SAC are all examples of off-policy reinforcement learning \cite{mnih2013playing} \cite{lillicrap_continuous_2015} \cite{fujimoto2018addressing} \cite{haarnoja2018soft}. In general, off-policy algorithms tend to be more sample efficient, i.e., requiring fewer samples to obtain a similar reward level. At the same time they also tend to be less stable, meaning it is more likely for these algorithms to see big dips in performance while training, and for algorithms using different random seeds to get drastically different results. 
 
-\subsubsection{Soft Actor Critic}
+\subsubsection{Soft Actor-Critic}
 
-Soft actor critic (SAC) is an off policy deep reinforcement learning algorithm shown to do well on control tasks with continuous actions spaces \cite{haarnoja_soft_2018}. To aid in exploration, rather than directly optimize the discounted sum of future rewards, SAC attempt to find a policy that optimizes a surrogate objective: 
-
-
-\begin{dmath}J^{\mathrm{soft}} = \mathbb{E}\left[ \sum_{t=0}^{\infty}\gamma^{t}\bigg(R_{t} + \alpha H(\pi(\cdot|s_{t}))\bigg) \right]  \label{eq:thresh} \end{dmath}
- 
- Where $H$ is the entropy of the policy.
+Soft actor-critic (SAC) is an off-policy deep reinforcement learning algorithm shown to do well on control tasks with continuous actions spaces~\cite{haarnoja_soft_2018}. To aid in exploration, rather than directly optimize the discounted sum of future rewards, SAC attempts to find a policy that optimizes a surrogate objective: 
+\begin{dmath}J^{\mathrm{soft}} = \mathbb{E}\left[ \sum_{t=0}^{\infty}\gamma^{t}\bigg(R_{t} + \alpha H(\pi(\cdot|s_{t}))\bigg) \right],  \label{eq:thresh} \end{dmath}
+Where $H$ is the entropy of the policy.
  
  %\[ V^{\pi}(s) = \mathbb{E}\left[ \sum_{t=0}^{\infty}\gamma^{t}\bigg(R_{t} + \alpha H(\pi(\cdot|s_{t}))\bigg)  \bigg\rvert s_{0} = s\right] \]
 
@@ -106,90 +146,84 @@ Soft actor critic (SAC) is an off policy deep reinforcement learning algorithm s
 %\[ Q^{\pi}(s,a) = \mathbb{E}\left[ \sum_{t=0}^{\infty}\gamma^{t}\bigg(R_{t}+ \alpha \sum_{t=1}^{\infty} \gamma^{t} H(\pi(\cdot|s_{t}))\bigg)  \bigg\rvert s_{0} = s, a_{0} = a\right] \]
 
  
-SAC introduces several neural networks for the training. We define a soft value function $V_{\phi}(s_{t})$, a neural network defined by weights $\phi$, which approximate $J^{soft}$ given the current state. Next we define two soft Q functions $Q_{\rho_{1}}(s_{t}, a_{t})$ and $Q_{\rho_{2}}(s_{t}, a_{t})$ which approximate $J^{soft}$ given both the current state and the current action. Using two Q networks is a trick that aids the training by avoiding overestimating the Q function. We must also define a target soft value function $V_{\overline \phi}(s_{t})$, which follows the value function via polyak averaging:
-
+SAC introduces several neural networks for the training. We define a soft value function $V_{\phi}(s_{t})$, a neural network defined by weights $\phi$, which approximate $J^{soft}$ given the current state. Next we define two soft Q functions, $Q_{\rho_{1}}(s_{t}, a_{t})$ and $Q_{\rho_{2}}(s_{t}, a_{t})$, which approximate $J^{soft}$ given both the current state and the current action. Using two Q networks is a trick that aids the training by avoiding overestimating the Q function. We must also define a target soft value function $V_{\overline \phi}(s_{t})$, which follows the value function via Polyak–Ruppert averaging:
 \begin{dmath}
-V_{\overline \phi^{+}}(s_{t}) = c_{py}V_{\overline \phi}(s_{t}) +  (1 - c_{py})V_{\phi}
+V_{\overline \phi^{+}}(s_{t}) = c_{py}V_{\overline \phi}(s_{t}) +  (1 - c_{py})V_{\phi},
 \end{dmath}
-
-With $c_{py}$ a fixed hyper parameter. We also define $\Pi_{\theta}$, a neural network that outputs $\mu_{\theta}(s_{t})$ and $\log(\sigma_{\theta}(s_{t}))$ which define the probability distribution of our policy $\pi_{\theta}$. The action is given by:
-
+with $c_{py}$ being a fixed hyper parameter. We also define $\Pi_{\theta}$, a neural network that outputs $\mu_{\theta}(s_{t})$ and $\log(\sigma_{\theta}(s_{t}))$ which theen define the probability distribution of our policy $\pi_{\theta}$. The action is given by:
 \begin{dmath}
 a_{t} = \tanh(\mu_{\theta}(s_{t}) + \sigma_{\theta}(s_{t}) \epsilon_{t})
-\label{act}
+\label{act},
 \end{dmath}
-
 where $\epsilon_{t}$ is drawn from $N(0,1)$. 
  
-SAC also make use of a replay buffer $D$ which stores the tuple $(s_{t}, a_{t}, r_{t})$ after policy rollouts. When it is time to update we sample randomly from this buffer, and use those samples to compute our losses and update our weights. 
+SAC also makes use of a replay buffer $D$ that stores the tuple $(s_{t}, a_{t}, r_{t})$ after policy rollouts. When it is time to update we sample randomly from this buffer, and use those samples to compute our losses and update our weights. 
  
  
-With this we can define the losses for each of these networks (originated from \cite{haarnoja_soft_2018})
- 
+With this we can define the losses for each of these networks (originated from \cite{haarnoja_soft_2018}).
 The loss for our two Q functions is:
- 
-\begin{dmath} L^{Q} = \mathbb{E}_{s_{t}, a_{t} \sim D}\left[\frac{1}{2}\left( Q_{\rho}(s_{t},a_{t}) - \hat{Q}(s_{t}, a_{t}) \right) ^{2}  \right] \end{dmath}
+\begin{dmath} L^{Q} = \mathbb{E}_{s_{t}, a_{t} \sim D}\left[\frac{1}{2}\left( Q_{\rho}(s_{t},a_{t}) - \hat{Q}(s_{t}, a_{t}) \right) ^{2}  \right], \end{dmath}
 where
-\begin{dmath} \hat{Q}(s_{t}, a_{t}) = r(s_{t}, a_{t}) + \gamma\mathbb{E}_{s_{t+1}}\left[V_{\overline{\phi}}(s_{t+1} ) \right]  \end{dmath}
+\begin{dmath} \hat{Q}(s_{t}, a_{t}) = r(s_{t}, a_{t}) + \gamma\mathbb{E}_{s_{t+1}}\left[V_{\overline{\phi}}(s_{t+1} ) \right].  \end{dmath}
 
 Our policy seeks to minimize:
-
 \begin{dmath} 
-L^{\pi} = \mathbb{E}_{s_{t} \sim D, \epsilon_{t} \sim N(0,1)}\left[ \log \pi_{\theta}(f_{\theta}(\epsilon_{t}, s_{t}) | s_{t}) - Q_{\rho_{1}}(s_{t}, f_{\theta}(\epsilon_{t}, s_{t}) \right]
+L^{\pi} = \mathbb{E}_{s_{t} \sim D, \epsilon_{t} \sim N(0,1)}\left[ \log \pi_{\theta}(f_{\theta}(\epsilon_{t}, s_{t}) | s_{t}) - Q_{\rho_{1}}(s_{t}, f_{\theta}(\epsilon_{t}, s_{t}) \right],
 \end{dmath}
-
-And our value function:
-
+and our value function is:
 \begin{dmath}
-L^{\text{V}} = \mathop{\mathbb{E}}_{s_{t} \sim D} \left[ \frac{1}{2} \left( V_{\phi}(s_{t}) - \hat  V_{\phi}(s_{t}) \right)^{2}  \right] 
+L^{\text{V}} = \mathop{\mathbb{E}}_{s_{t} \sim D} \left[ \frac{1}{2} \left( V_{\phi}(s_{t}) - \hat  V_{\phi}(s_{t}) \right)^{2}  \right], 
 \end{dmath} 
-
 Where
-
 \begin{dmath}
-\hat V_{\phi} = \mathbb{E}_{a_{t} \sim \pi_{\theta}} \left[Q^{min}(s_{t}, a_{t}) - log \pi_{\theta}(a_{t} | s_{t}) \right]
+\hat V_{\phi} = \mathbb{E}_{a_{t} \sim \pi_{\theta}} \left[Q^{min}(s_{t}, a_{t}) - log \pi_{\theta}(a_{t} | s_{t}) \right],
 \end{dmath}
+and $Q^{min} = \min(Q_{\rho_{1}}(s_{t}, a_{t}), Q_{\rho_{2}}(s_{t}, a_{t}))$.
 
-And $Q^{min} = \min(Q_{\rho_{1}}(s_{t}, a_{t}), Q_{\rho_{2}}(s_{t}, a_{t}))$
+ SAC starts by doing policy rollouts, recording the state, action, reward, and the active controller at each time step. It stores these experiences in the replay buffer. After enough trials have been run, we run our update step. We sample from the replay buffer, and we use these sampled states to compute the losses above. We then run one step of Adam \cite{kingma_adam:_2014} to update our network weights. We repeat this update $n_{u}$ times with different samples. Finally, we copy our weights to our target network and repeat until convergence (or some other stopping metric). 
 
- SAC starts by doing policy roll outs, recording the state, action, reward, and the active controller at each time step. It stores these experiences in the replay buffer. After enough trials have been run, we run our update step. We sample from the replay buffer, and use these sampled states to compute the losses above. We then run one step of Adam \cite{kingma_adam:_2014} to update our network weights. We repeat this update $n_{u}$ times with different samples. Finally we  copy our weights to our target network and repeat until convergence (or some other stopping metric). 
+\subsection{On-Policy RL}
 
-\subsection{On Policy RL}
-
-In general, off policy algorithms tend to be more sample efficient, requiring less samples to obtain a similar reward level. On policy algorithms are less sample efficient, but do tend to be more stable, getting more consistent rewards across random seeds.
+On-policy algorithms use only data obtained with under the current policy to make updates. After an update, these methods essentially throw out the data obtained so far and start afresh. Although this causes on-policy algorithms to be less sample efficient, they also tend to be more stable. Additionally, they tend to be much faster at updating policies. In contexts where sampling from the environment is very fast, on policy algorithms are often faster than off policy, despite worse over all sample efficiency. Examples include the classic REINFORCE, A2C, TPRO and PPO \cite{williams1992simple} \cite{mnih_asynchronous_2016} \cite{schulman_trust_2015} \cite{schulman_proximal_2017}.
 
 \subsubsection{Policy Gradients}
 
-
+Many on-policy algorithms are a variant of the classic policy gradient algorithm. In general, we wish to use stochastic gradient descent to train our network by maximizing the gradient of our policy parameters with respect to our reward function:
 \begin{equation}
     \label{eq:vapg}
-    \theta^{+} = \theta + \alpha \nabla_\theta R(\theta)
+    \theta^{+} = \theta + \alpha \nabla_\theta R(\theta).
 \end{equation}
 
+Typically, the gradient $\nabla_\theta R(\theta)$ is not available to us (though in Chapter~\ref{chap:p5} we will examine what happens when we \textit{do} have such gradients), so that we must therefore approximate it in some way. Using the so-called log derivative trick, we can show that the reward gradient is equal to the following:
 \begin{equation}
 \nabla_{\theta}R(\theta) = \mathop{\mathbb{E}}_{\eta}\left[
 \sum_{t=0}^{T} \nabla_{\theta}\log \pi_\theta(a_{t}|s_{t})r_{t}
-\right]
+\right].
 \end{equation}
+This expression can then be approximated by sampling from the environment. Any algorithm which is using this update rule can be considered a policy gradient algorithm.
 
 
-\subsection{Gradient Free Algorithms}
+\subsection{Gradient-Free Algorithms}
+
+    Although less common, there are some reinforcement learning algorithms which make no use of gradients at all. Examples include ES and ARS \cite{salimans2017evolution} \cite{Mania2018}. These algorithms are essentially using the update rule from Equation~\ref{eq:vapg}, but rather than using the policy gradient, they instead approximate the reward gradient with finite differences. These methods have the advantage that they are easy to understand, and can scale easily to hundreds of CPUs/GPUs running in parallel.
 
 
 \subsubsection{Augmented Random Search}
-    In contrast to other modern RL algorithms, Augmented Random Search (ARS) represents a return to simplicity, it is perhaps a testament to how far increased computational power alone can take us. in \cite{Mania2018}, the authors showed that linear policies and a simple direct random search over policy parameters was sufficient to obtain state of the art results for the Mujoco locomotion tasks. In addition to this, work by \cite{Rajeswaran-NIPS-17} also showed that simpler policy classes, linear and RBF policies, combined with a simple natural policy gradient algorithm could also compete with state of the art RL. There is also \cite{linear-walking-2022} which is just more proof.
+    In contrast to other modern RL algorithms, Augmented Random Search (ARS) is an extremely minimalist algorithm. In \cite{Mania2018}, the authors showed that linear policies and a simple direct random search over policy parameters was sufficient to obtain state-of-the-art results for the OpenAI Mujoco locomotion tasks. In addition to this, work by \cite{Rajeswaran-NIPS-17} also showed that simpler policy classes, linear and radial basic function (RBF) policies, combined with a simple natural policy gradient algorithm, could also compete with state-of-the-art RL. There is also \cite{linear-walking-2022}, which showed that linear policies could be applied to a complex locomotion task on a real robot.
+    
+    A version of this algorithm is presented in Algorithm \ref{algo:brs}. We call this version Random Policy Search. It is very similar to ARS, but lacks the normalization of states. Essentially at each time step, we sample noise vectors from a normal distribution and add them to our current policy to get several candidate policies. We then do rollouts with the candidate policies, and collect their total rewards. These rewards are then used to update the current policy. 
     
     
 
 \begin{algorithm}
-\caption{Direct Policy Search}\label{algo:brs}
+\caption{Random Policy Search}\label{algo:brs}
 \begin{algorithmic}[1]
 \Require Policy $\pi$ with trainable parameters $\theta$
 \Require Hyper-parameters - $\alpha$ $\sigma$ $n$
 \State Sample $\bm{\delta} = [\delta_{1}, ..., \delta_{n}]$ from $\mathcal{N}(0, \sigma)^{\text{n x }\abs{\theta}}$
 \State $\theta^{*}  = [\theta - \delta_{1}, ..., \theta - \delta_{n}, \theta + \delta_{1}, ..., \theta + \delta_{n}] $
 \For{$\theta_{i}$ in $\theta^{*}$}
-    \State Do rollout with policy $\pi_{\theta_{i}}$, using the MLA
+    \State Do rollout with policy $\pi_{\theta_{i}}$
     \State Collect sum of rewards $R_{i}$. 
 \EndFor
 \State $ \theta^{+} = \theta + \frac{\alpha}{n \sigma_{R}}\sum_{i=0}^{n} (R_{i} - R_{i+n})\delta_{i} $ 
@@ -197,4 +231,12 @@ In general, off policy algorithms tend to be more sample efficient, requiring le
 \end{algorithm}
 
 
+% \section{Meshing}
 
+% \todo{Not sure if I really need this section here, or if I should just introduce in later in one of the chapters}
+
+% \cite{Talelepush} 
+% \cite{Taleledeep}
+% \cite{Byl2017}
+% \cite{Saglam-RSS-14}
+% \cite{Saglamhzd}

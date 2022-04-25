@@ -1,50 +1,50 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
-Advances in machine learning have allowed researchers to leverage the massive amount of compute available today in order to better control robotic systems. The result is that modern model-free reinforcement learning has been used to solve very difficult problems. Recent examples include controlling a 47 DOF humanoid to navigate a variety of obstacles \cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand \cite{openai_learning_2018}, and allowing a physical quadruped robot to run \cite{hwangbo_learning_2019}, and recover from falls \cite{lee_robust_2019}.
+% Advances in machine learning have allowed researchers to leverage the massive amount of compute available today in order to better control robotic systems. The result is that modern model-free reinforcement learning has been used to solve very difficult problems. Recent examples include controlling a 47 DOF humanoid to navigate a variety of obstacles \cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand \cite{openai_learning_2018}, and allowing a physical quadruped robot to run \cite{hwangbo_learning_2019}, and recover from falls \cite{lee_robust_2019}.
 
-Despite this, these algorithms can struggle on certain low dimensional problems from the nonlinear control literature. Namely  the acrobot \cite{spong_swing_1994} and the cart pole pendulum. These are both under-actuated mechanical systems that have unstable fixed points in their unforced dynamics (see section \ref{section:Acrobot}). Typically, the goal is to bring the system to this fixed point and keep it there. In this paper we focus on the acrobot as we found less examples of model free reinforcement learning performing well on this task.
+As we have discussed, deep reinforcement learning has been used recently to solve very challenging problems in robotic control. Despite this, these same algorithms can struggle on certain low dimensional problems from the nonlinear control literature, e.g.,  the acrobot \cite{spong_swing_1994} and the cart-pole pendulum. These are both underactuated mechanical systems that have unstable fixed points in their unforced dynamics (see Section~\ref{section:Acrobot}). Typically, the goal is to bring the system to an unstable fixed point and to keep it there. In this paper, we focus on the acrobot as we found fewer examples in the existing literature of model-free reinforcement learning to perform well on this task.
 
 \begin{figure}[ht]
 \centering
   \includegraphics[scale=.25]{fig/cdc2020/system5.png}
-  \caption{System diagram for the new technique proposed in this paper. Rounded boxes represent learned neural networks, squared boxes represent static, hand crafted functions. The local controller is a hand designed LQR, the swing-up controller is obtained via reinforcement learning, and the gating function is trained as a neural network classifier}
+  \caption{System diagram for the new technique proposed in this paper. Rounded boxes represent learned neural networks, square-cornered boxes represent static, hand-crafted functions. The local controller is a hand-designed LQR, the swing-up controller is obtained via reinforcement learning, and the gating function is trained as a neural network classifier.}
   \label{fig:hyst}
 \end{figure}
 
 
-It is not uncommon to see some variation of these systems tackled in various reinforcement benchmarks, but we have found these problems have usually been artificially modified to make them easier. For example the very popular OpenAI Gym benchmarks \cite{1606.01540} includes an acrobot task. But the objective is only to get the system in the rough area of the unstable fixed point, and the dynamics are integrated with a fixed time-step of .2 seconds, which makes the problem much easier and unrepresentative of a physical system. We have found that almost universally, modern model free reinforcement learning algorithms fail to solve a more realistic version of the task. Notably, the Deep Mind control suite \cite{deepmindcontrolsuite2018} includes the full acrobot problem, and all but one algorithm that they tested (the exception being \cite{barth-maron_distributed_2018}) learned nothing, the average return after training was the same as before training. 
+It is not uncommon to see some variation of these systems tackled in various reinforcement benchmarks, but we have found these problems have usually been artificially modified to make them easier. For example, the very popular OpenAI Gym benchmarks \cite{1606.01540} includes an acrobot task, but the objective is only to get the system in the rough area of the unstable (fully upright) fixed point, and the dynamics are integrated with a fixed time-step of 0.2 seconds, which makes the problem much easier and unrepresentative of a physical system. We have found that almost universally, modern model-free reinforcement learning algorithms fail to solve a more realistic version of the task. Notably, the DeepMind control suite \cite{deepmindcontrolsuite2018} includes the full acrobot problem, and all but one algorithm that they tested (the exception being \cite{barth-maron_distributed_2018}) learned nothing, i.e., the average return after training was the same as before training. 
 
-Despite this, there are many traditional model based solutions \cite{spong_swing_1994}, \cite{spong_energy_1996}, that can solve this problem well. In this work we do not seek to improve upon the model based solutions to this problem, but to extend to the class of problems that model free reinforcement learning methods can be used to solve. We believe the methods used here to solve the acrobot can be extended to other problems, such as making robust walking policies.
+Despite this, there are many traditional model-based solutions \cite{spong_swing_1994}, \cite{spong_energy_1996}, that can solve this problem well. In this, work we do not seek to improve upon the model-based solutions to this problem, but instead to extend the class of problems that model-free reinforcement learning methods can be used to solve. We believe the methods used here to solve the acrobot can be extended to other problems, such as making robust walking policies.
 
- One of the primary reasons why this problem is difficult for RL is that the region of state space that can be brought to the unstable fixed point is very small, even with generous torque limits. An untrained RL agent explores by taking random actions in the environment. Reaching the region of attraction is rare, we found that for our system, random actions will reach the basin of attraction for a well designed LQR in about 1\% of trials. However an RL agent doesn't have access to a well designed LQR at the start of training, in addition to reaching the region where stabilization is possible, the agent must  also stabilize the acrobot for the agent to receive a strong reward signal. This results in successful trials in this environment being extremely rare, and therefore training is in-feasibly slow and sample inefficient.
+ One of the primary reasons why this underactuated problem is difficult for RL is that the region of state space that can be brought to the unstable fixed point over a small time horizon is very small, even with generous torque limits.  An untrained RL agent explores by taking random actions in the environment. Reaching the region of attraction is correspondingly rare. We found that for our system, random actions will reach the basin of attraction for a well-designed LQR (linear quadratic regulator) controller in about 1\% of trials. However, an RL agent doesn't have access to a well-designed LQR at the start of training. Instead, in addition to reaching the region where stabilization via linearization of the system is possible, the agent must also then stabilize the acrobot for the agent to receive a strong reward signal. This results in successful trials in this environment being extremely rare, and therefore training is infeasibly slow and sample inefficient.
 
-Our solution to add a predesigned balancing controller into the system, this is comparatively easy to design, and can be done with a linear controller. Our contribution is a novel way to combine this balancing controller with an algorithm that is learning the swing-up behavior. We simultaneously learn the swing-up controller, and a function that switches between the two controllers.  
+Our solution is to add a predesigned balancing controller into the system. This is comparatively easy to design, and can be done with a linear controller. Our contribution is a novel way to combine this balancing controller with an algorithm that is learning the swing-up behavior. We simultaneously learn the swing-up controller, and a function that switches between the two controllers.  
 
 \subsection{Related Work}
 
-Work done by Randolov et. al. \cite{randlov_combining_2000} is closely related to our own. In that work they construct a local controller, an LQR, and combine it with a learned controller to swing-up and balance an inverted double pendulum (similar to the acrobot we study but with actuators at both joints). The primary differences between our work and theirs is that they hard code the transition between their two controllers. In contrast we learn our transition function online and in parallel with our swing-up controller.
+Work done by Randolov et al. \cite{randlov_combining_2000} is closely related to our own. In that work, the authors construct a local controller, an LQR, and combine it with a learned controller to swing-up and balance an inverted double pendulum. Their choice of system is similar to the acrobot we study, but, importantly, it is fully actuated, with actuators at both joints. Another difference between our work and theirs is that they hard code the transition between their two controllers. In contrast, we learn our transition function online and in parallel with our swing-up controller.
 
 
 % Also, the learning algorithm they use, SARSA($\lambda$), is limited to discrete action spaces, and therefore to apply this technique to continuous action spaces requires an explicit discretization of the action space beforehand, which both limits the flexibility of the controller and increases the design effort.  
 
-Work done by Yoshimoto et. al. \cite{yoshimoto_acrobot_2005}, like ours, learns the transition function between controllers in order to swing-up and balance an acrobot. However, unlike our work they limit the controllers they switch between to pre-computed linear functions. In contrast our work simultaneously learns a nonlinear swing-up controller and the transition between a learned and pre-computed balance controller.
+Work done by Yoshimoto et al. \cite{yoshimoto_acrobot_2005}, like ours, learns the transition function between controllers in order to swing-up and balance an acrobot. However, unlike our work they limit the controllers to switch between two pre-computed linear functions. In contrast, our work simultaneously learns a nonlinear swing-up controller and the transition between a learned and pre-computed balance controller.
 
 %Like before, restricting the control to pre-computed controllers limits the applicability of this method to more complex systems, where an optimal, or even good enough local controller may not be known ahead of time. 
 
-Wiklednt et. al  \cite{wiklendt_small_2009} too swing-up and balance an acrobot using a combined neural network and LQR. However they only learn to swing-up from a single initial condition, whereas our method learns to solve the task from any initial position.
+Wiklendt et al.~\cite{wiklendt_small_2009} also achieve swing-up and balance an acrobot using a combined neural network and LQR. However, they only learn to swing-up from a single initial condition, whereas our method learns a full control \textit{policy}, to solve the task from any initial configuration of $\theta_1$ and $\theta_2$ (at zero velocity).
 
 
 %% Can include this, need too? !!!
 %More recently, Lee et. al. \cite{lee_robust_2019} has done work in selecting between discrete, learned, behaviors using reinforcement learning. They apply this to teach a physical quadruped to recover from a fall, with very impressive results. Their approach does differ from ours though, in that each behavior is learned independently and then the transitions between them learned separately. In our case it turned out to be extremely important to train the swingup controller while the balance controller was on and being switched to. Without this the swingup policy tends to not learn anything.
 
-Doya \cite{doya_multiple_2002} also learns many controllers using reinforcement learning, and adaptively switches between them. However unlike our work, the switching function is not learned using reinforcement learning, but is instead selected according to which of the controllers currently makes best prediction of the state at the current point in state space. We believe our model free updates will avoid the model bias that can be associated with such approaches. Furthermore our work allows for combining learned controllers with hand designed controllers, such as the LQR.  
+Doya \cite{doya_multiple_2002} also learns many controllers using reinforcement learning, and then adaptively switches between them. However, unlike our work, the switching function is not learned using reinforcement learning, but is instead selected according to which of the controllers currently makes the best prediction of the state at the current point in state space. We believe our model free updates will avoid the model bias that can be associated with such approaches. Furthermore, our work allows for combining learned controllers with hand-designed controllers, such as LQR.  
 
 \section{The Acrobot System}
 
 \label{section:Acrobot}
 
-The acrobot is described in Figure \ref{fig:acrobot}. It is a double inverted pendulum with a motor only at the elbow. We use the parameters from Spong \cite{spong_swing_1994}:
+The acrobot is described in Figure \ref{fig:acrobot}. It is a double inverted pendulum with a motor only at the elbow. We use the following parameters, from Spong \cite{spong_swing_1994}:
 
 \begin{center}
 %\captionof{table}{Mass and inertial parameters used in simulation}
@@ -67,19 +67,20 @@ Parameter & Value & Units\\
 
 \begin{figure}[ht]
 \centering
-  \includegraphics[scale=.25]{fig/cdc2020/acrobot2.png}
+  \includegraphics[scale=.45]{fig/cdc2020/acrobot2.png}
   \caption{Diagram for the acrobot system}
   \label{fig:acrobot}
 \end{figure}
 
 
-The state of this system is $s_{t} = [\theta_{1}, \theta_{2}, \dot \theta_{1}, \dot \theta_{2}]$. The action $a_{t} = \tau$, is the torque at the elbow joint. The goal we wish to achieve is to take this system from any random initial state, to the upright state $gs = [\pi/2, 0, 0, 0]$, which we will refer to as the goal state. To achieve this goal, we seek the maximum of the following reward function:
-
-\begin{dmath} r_{t} = l_{1}\sin(\theta_{1}) + l_{2} \sin(\theta_{1} + \theta_{2})
+The state of this system is $s_{t} = [\theta_{1}, \theta_{2}, \dot \theta_{1}, \dot \theta_{2}]^\intercal$. The action $a_{t} = \tau_t$, is the torque at the elbow joint. The goal we wish to achieve is to take this system from any random initial state to the upright state $gs = [\pi/2, 0, 0, 0]\intercal$, which we will refer to as the goal state. To achieve this goal, we seek to maximize the following reward function:
+\begin{dmath} r_{t} = l_{1}\sin(\theta_{1}) + l_{2} \sin(\theta_{1} + \theta_{2}),
+\label{eq:acro_htreward}
 \end{dmath}
-This was motivated by the popular Acrobot-v1 environment \cite{baselines}, We found empirically that for our algorithm this reward signal led to the same solutions as the more typical $\norm{s_{t} - gs}$. However we found that some of the other algorithms we compared to perform better with the sinusoidal reward function. 
+which is, geometrically, just the vertical height of the tip of distal link.
+This choice was motivated by the popular Acrobot-v1 environment \cite{baselines}. Empirically, using this reward signal for our algorithm led to the same solutions as did the more typical  $r_t=-\norm{s_{t} - gs}$. However, some of the other algorithms we against which we benchmarked performance (see Table~\ref{table:ch3results}) perform better with the reward function in Eq.~\ref{eq:acro_htreward}.
 
-We implement the system in python (all source code is provided, see footnote on page one), the dynamics are implemented using Euler integration with a time-step of .01 seconds, and the control is updated every .2 seconds. We experimented with smaller timesteps and higher order integrators, generally we found these made the balancing task easier, but made the wall clock time for the learning much slower.  
+We implement the system in Python (all source code is publicly available\footnote{Source code for this work can be found here: https://github.com/sgillen/ssac}), the dynamics are implemented using Euler integration with a time-step of 0.01 seconds, and the control is updated every 0.2 seconds. We experimented with smaller time steps and higher-order integrators, as well. In general, these modifications made the balancing task easier, but made the wall clock time for the learning much slower.  
 
 
 
@@ -95,36 +96,26 @@ We implement the system in python (all source code is provided, see footnote on 
 \section{Switched Soft Actor Critic}
 \label{section:SSAC}
 
-Our primary contribution is to extend SAC in two key ways, we call the modified algorithm switched soft actor critic (SSAC). The first modification is a change to the structure of the learned controller in order to inject our domain knowledge into the learning. Our controller consists of three distinct components. The gate function, the balancing controller, and the swing-up controller. The gate, $G_{\gamma}: S \rightarrow [0,1]$, is a neural network parameterized by weights $\gamma$ which takes the observations at each time step and outputs a number $g_{t}$ representing which controller it thinks should be active. $g_{t} \approx 1$ implies high confidence that the balancing controller should be active, and $g_{t} \approx 0$ implies the swing-up controller is active. This output is fed through a standard switching hysteris function, to avoid rapidly switching on the class boundary, parameters given in the appendix. The swing-up controller can be seen as the policy network from vanilla SAC, the action then is determined by equation (\ref{act}). The parameters for these networks are given in the appendix. The balancing controller is a linear quadratic regulator $C: S \rightarrow A$  about the acrobot's unstable equilibrium. We use the LQR designed by Spong \cite{spong_swing_1994}:
-
-Using 
-
-\[ Q = \begin{pmatrix} 1000 & -500 & 0 & 0 \\ -500 & 1000 & 0 & 0 \\ 0 & 0 & 1000 & -500 \\ 0 & 0 & -500 & 1000\end{pmatrix}, R = \begin{pmatrix} .5 \end{pmatrix}
+Our primary contribution is to extend SAC in two key ways. We call our modified algorithm switched soft actor critic (SSAC). The first modification is a change to the structure of the learned controller in order to inject our domain knowledge into the learning. Our controller consists of three distinct components: the gate function, the swing-up controller, and the balancing controller. The gate, $G_{\gamma}: S \rightarrow [0,1]$, is a neural network parameterized by weights $\gamma$ which takes the observations at each time step and outputs a number $g_{t} \in [0,1]$ representing which controller it thinks should be active. $g_{t} \approx 1$ implies high confidence that the balancing controller should be active, and $g_{t} \approx 0$ implies the swing-up controller is active. This output is fed through a standard switching hysteresis function, to avoid rapidly switching on the class boundary. Switching parameters are given in the appendix on page~\pageref{app:ch3}. The swing-up controller can be seen as the policy network from vanilla SAC, with the action then determined by Equation~\ref{act}. (The parameters for these networks are also given in the same appendix.) The balancing controller is a linear quadratic regulator (LQR), $C: S \rightarrow A$  about the acrobot's unstable equilibrium. We use the LQR designed by Spong \cite{spong_swing_1994}, i.e., with
+\[ Q = \begin{pmatrix} 1000 & -500 & 0 & 0 \\ -500 & 1000 & 0 & 0 \\ 0 & 0 & 1000 & -500 \\ 0 & 0 & -500 & 1000\end{pmatrix}, ~~~~~R = \begin{pmatrix} .5 \end{pmatrix}.
 \]
-
-The resulting control law is: 
-\[ u = -Ks \]
-
+The resulting state feedback control law is of the form
+\[ u = -Ks,\]
 with 
+\[ K = [-1649.8,  -460.2,  -716.1,  -278.2]. \]
 
-\[ K = [-1649.8,  -460.2,  -716.1,  -278.2] \] 
+These three functions (gate function, swing-up controller, and balancing controller) together form our policy,  $\pi_{\theta}$. Algorithm \ref{alg:rollout} demonstrates how the action is computed at each time step.
 
-These three functions together form our policy,  $\pi_{\theta}$. Algorithm \ref{alg:rollout} demonstrates how the action is computed at each timestep.
-
-We learn the basin of attraction for the regulator by framing it as a classification problem, our neural network takes as input the current state, and outputs a class prediction between 0-1. A one implying that the LQR is able to stabilize the system, and a zero implying that it cannot. We then define a threshold function $T(s)$, as a criteria for what we consider a successful trial:
-
-\begin{dmath} {T(s) = \norm{s_{t} - gs } < \epsilon_{thr}} \quad \forall t \in \{N_{e}-b, ...,  N_{e} \}  \label{T} 
+We learn the basin of attraction for the regulator by framing it as a classification problem: our neural network takes as input the current state, and it outputs a class prediction between 0 and 1. A one implies that the LQR is able to stabilize the system, and a zero implying that it cannot. We then define a threshold function $T(s)$, as a criteria for what we consider a successful trial:
+\begin{dmath} {T(s) = \norm{s_{t} - gs } < \epsilon_{thr}} \quad \forall t \in \{N_{e}-b, ...,  N_{e} \}.  \label{T} 
 \end{dmath}
-
-Here $s$ is understood to be an entire trajectory of states, $N_{e}$ is the length of each episode, $e_{thr}$ and $b$ hyper parameters with values given in the appendix. We are following the convention of a programming language here, (\ref{T}) returns one when the inequality holds, and zero otherwise. To gather data, we sample a random initial condition, do a policy roll out using the LQR, and record the value of \ref{T} as the class label.
+Here, $s$ is understood to be an entire trajectory of states, $N_{e}$ is the length of each episode, $e_{thr}$ and $b$ are hyperparameters with values given in the appendix. We are following the convention of a programming language here, where (\ref{T}) returns one when the inequality holds and zero otherwise. To gather data, we sample a random initial condition, do a policy rollout using the LQR, and record the value of \ref{T} as the class label.
 
 To train the gating network we minimize the binary cross entropy loss:
+\begin{dmath}L^{\text{G}} =  \mathop{\mathbb{E}}_{\gamma} -\left[ c_{w} y_{i}\log(G_{\gamma}(s_{i})) + (1 - y_{i})\log(1 - G_{\gamma}(s_{i})) \right],\end{dmath} 
+Where $y_{i}$ is the class label for the ith sample, and $c_{w}$ is a class weight for positive examples. We set $c_{w} = \frac{n_{t}}{n_{p}}w $ where $n_{t}$ is the total number of samples, $n_{p}$ is the number of positive examples, and $w$ is a manually chosen weighting parameter to encourage learning a conservative basin of attraction. We found that the learned basin was very sensitive to this parameter; a value of 0.01 empirically works well. Note that unlike the other losses above, the data here are not computed over a single sample but are instead computed over the entire replay buffer. We found that the gate was prone to ``forgetting" the basin of attraction early in the training, otherwise. This also allows us to update the gate infrequently, when compared to the other networks, so that the total impact on wall clock time is modest.
 
-\begin{dmath}L^{\text{G}} =  \mathop{\mathbb{E}}_{\gamma} -\left[ c_{w} y_{i}\log(G_{\gamma}(s_{i})) + (1 - y_{i})\log(1 - G_{\gamma}(s_{i})) \right]\end{dmath} 
-
-Where $y_{i}$ is the class label for the ith sample, $c_{w}$ is a class weight for positive examples. we set $c_{w} = \frac{n_{t}}{n_{p}}w $ where $n_{t}$ is the total number of samples, $n_{p}$ is the number of positive examples, and $w$ is a manually chosen weighting parameter to encourage learning a conservative basin of attraction. We found that the learned basin was very sensitive to this parameter, a value of .01 empirically works well. Note that unlike the other losses above, the data here is not computed over a sample but is instead computed over the entire replay buffer. We found the gate was prone to "forgetting" the basin of attraction early in the training otherwise. This also allows us to update the gate infrequently compared to the other networks, and so the total impact on wall clock time is modest.
-
-The second extension is a modification of the replay buffer $D$. We do this by constructing $D$ from two separate buffers, $D_{n}$ and $D_{r}$. Only roll outs that ended in a successful balance (as defined by equation (\ref{T})) are stored in $D_{r}$. The other buffer stores all trials, the same as the unmodified replay buffer. Whenever we draw experience from $D$, with probability $p_{d}$ we sample from $D_{n}$, and with probability $(1-p_{d})$ we sample from $D_{r}$. We found this to speed up learning dramatically, as even with the LQR and a decent gating function in place, the swing-up controller finds the basin of attraction only in a tiny minority of trials.
+The second extension is a modification of the replay buffer $D$. We do this by constructing $D$ from two separate buffers, $D_{n}$ and $D_{r}$. Only rollouts that ended in a successful balance (as defined by Equation (\ref{T})) are stored in $D_{r}$. The other buffer stores all trials, the same as the unmodified replay buffer. Whenever we draw experience from $D$, with probability $p_{d}$ we sample from $D_{n}$, and with probability $(1-p_{d})$ we sample from $D_{r}$. We found that this sped up learning dramatically, as even with the LQR and a decent gating function in place, the swing-up controller finds the basin of attraction only in a tiny fraction of all trials.
 
 
 \begin{algorithm}
@@ -208,20 +199,20 @@ The second extension is a modification of the replay buffer $D$. We do this by c
 \section{Results}
 
 \subsection{Training} 
-To train SSAC we first start by training the gate exclusively, using the supervised learning procedure outlined in section \ref{section:SSAC} This allows us to form an estimate of the basin of attraction before we try to learn to reach it. We trained the gate for 1e6 timesteps, and then trained both in parallel using algorithm 2 for another 1e6 timesteps. The policy, value, and Q functions are updated every 10 episodes, and the gate every 1000. The disparity is because, as mentioned earlier, the gate is updated using the entire replay buffer, while all the other losses are updated with one sample batch from the buffer. Hyperparameters were selected by picking the best performing values from a manual search, which are reported in the appendix.
+To train SSAC we first start by training the gate, exclusively, using the supervised learning procedure outlined in Section~\ref{section:SSAC}. This allows us to form an estimate of the basin of attraction before we try to learn to reach it. We trained the gate for 1e6 time steps, and then trained both, together in parallel, using Algorithm 2 for another 1e6 time steps. The policy, value, and Q functions are updated every 10 episodes, and the gate every 1000. The disparity is because, as mentioned earlier, the gate is updated using the entire replay buffer, while all the other losses are updated with one sample batch from the buffer. Hyperparameters were selected by picking the best performing values from a manual search, which are reported in the appendix.
 
-In addition to training on our own version of SAC and Switched SAC we also examined the performance of several algorithms written by OpenAI and cleaned up by the community \cite{stable-baselines}. We examine PPO and TRPO, two popular trust region methods. A2C was included to compare to a non trust region, modern policy gradient algorithm. We also include TD3, which has been shown in the literature to do well on the acrobot and cartpole problems \cite{lillicrap_continuous_2015}
+In addition to training on our own version of SAC and Switched SAC we also examined the performance of several algorithms written by OpenAI and further refined by various contributors on Github \cite{stable-baselines}. We examine PPO and TRPO, two popular trust region methods. A2C was included to compare to a non-trust-region, modern policy gradient algorithm. We also include TD3, which has been shown in the literature to do well on the acrobot and cart-pole problems \cite{lillicrap_continuous_2015}.
 
-Stable baselines includes hyperparameters that were algorithmically tuned for each environment. For algorithms where parameters for Acrobot-v1  were available we chose those, some algorithms were missing tuned Acrobot-v1 examples, and for those we used parameters for Pendulum-v0, simply because it is another continuous, low dimensional task. Note we don't expect the hyper-parameters to impact the learned policy's score in this case, only how fast learning occurs. Reported rewards are averaged over 4 random seeds. Every algorithm makes 2e6 interactions with the environment. Also note that this project was largely inspired by spending a large amount of time manually tuning these parameters to work on this task (with no success better than what we see here). Figure \ref{fig:switched_reward} shows the reward curve for our algorithm and the algorithms from stable baselines. Table \ref{table:results} shows the mean and standard deviation for the final rewards obtained by all algorithms. 
+Stable baselines includes hyperparameters that were algorithmically tuned for each environment. For algorithms where parameters for Acrobot-v1  were available, we chose those. Some algorithms did not yet have parameters tuned for Acrobot-v1, and for those we used parameters for Pendulum-v0, simply because it is another continuous, low-dimensional task. Note that we do not expect the hyperparameters to impact the learned policy's score in this case, but instead only how fast learning occurs. Reported rewards are averaged over 4 random seeds. Every algorithm makes 2e6 interactions with the environment. Also note that this project was in fact largely inspired by previously having spent a large amount of time \textit{manually} tuning these parameters to work on this task\footnote{...and with no success better than what we see here!}, previous to developing the SSAC approach described here. Figure \ref{fig:switched_reward} shows the reward curve for our algorithm and the algorithms from stable baselines. Table \ref{table:ch3results} shows the mean and standard deviation for the final rewards obtained by all algorithms. 
 
  \begin{figure}[h]
 \centering
   \includegraphics[scale=.5]{fig/cdc2020/reward.png}
-  \caption{Reward curve for SSAC and the other algorithms we compare to. the solid line is the smoothed average of episode reward, averaged over four random seeds. The shaded area indicates the best and worst rewards at each epoch across the four seeds. SSAC is shown starting later to account for the time training the gating function alone.}
+  \caption{Reward curve for SSAC and the other algorithms against which performance is compared. The solid line is the smoothed average of episode reward, averaged over four random seeds. The shaded area indicates the best and worst rewards at each epoch across the four seeds. SSAC is shown starting later to account for the time training the gating function alone.}
   \label{fig:switched_reward}
 \end{figure}
 
-
+\begin{table}
 \begin{center}
 % If you know how to tell this environment to not pagebreak that would be great
 \begin{tabu}{| X[l] | X[l] |}
@@ -242,14 +233,16 @@ Algorithm (implementation) & Mean Reward $\pm$ Standard Deviation\\
  \hline
 \end{tabu}
 %\caption{table}{Rewards after training for across learning algorithms. This table shows results after 2 million environment interactions}
-\label{table:results}
+\caption{Rewards across learning algorithms, after 2 million environment interactions}
+\label{table:ch3results}
 \end{center}
+\end{table}
 
-As we can see, for this environment, with the number of steps we have allotted, our approach outperforms the algorithms we compared to, with TD3 making it the closest to our performance. This is a necessarily flawed comparison. These algorithms are meant to be general purpose, so it is unfair to compare them to something designed for a particular problem. But that is part of the point we are making, that adding just a small amount of domain knowledge can improve performance dramatically.
+As we can see, for this environment, and with the number of steps we have allotted, our approach outperforms the other tested algorithms, with TD3 making it the closest to our performance. This is a necessarily flawed comparison. These algorithms are meant to be general purpose, so it is unfair to compare them to something designed for a particular problem. But that is, in fact, part of the point we are making, i.e., that adding just a small amount of domain knowledge can improve performance dramatically.
 
 \subsection{Analyzing performance}
 
-To qualitatively evaluate the performance of our learned agent we examine the behavior during individual episodes. SSAC gives us a deterministic controller (we can set $\epsilon_{t}$ from \ref{act} to zero). We chose the initial condition $s_{0} = (-\pi/2, 0, 0, 0)$ and record a rollout. The actions are displayed in figure \ref{fig:act}, and the positions in \ref{fig:obs}.
+To qualitatively (and, perhaps, more intuitively) evaluate the performance of our learned agent, beyond just the scalar reward function, we examine the behavior during individual episodes. SSAC also gives us a deterministic controller, as we can set $\epsilon_{t}$ from \ref{act} to zero. We did so, chose the initial condition $s_{0} = (-\pi/2, 0, 0, 0)$ and recorded a rollout. The actions are displayed in Figure~\ref{fig:act}, and the positions in Fig.~\ref{fig:obs}.
 
  \begin{figure}[h!]
 \centering
@@ -265,12 +258,12 @@ To qualitatively evaluate the performance of our learned agent we examine the be
   \label{fig:obs}
 \end{figure}
 
-We have also found that despite achieving relatively high rewards, the other algorithms we compare to often fail to meet the balance criteria (11). We often see solutions where the first link is constantly rotating, with the second link constantly vertical. To demonstrate this, as well as to demonstrate our algorithms robustness, we run roll outs with the trained agents across a grid of initial conditions, recording if the trajectory satisfies (11) or not. We compare our method with TD3, which was the best performing model free method we could find on this task. Figure \ref{fig:td3_map} show the results, \textbf{when these initial conditions were run for SSAC, it satisfied (11) for every initial condition}. 
+By comparison, we notes that despite achieving relatively high rewards, the other algorithms we compare to often fail to meet the balance criteria (Eq.~\ref{T}). We often see solutions where the first link is constantly rotating, with the second link constantly vertical. To demonstrate this, as well as to demonstrate the robustness of our SSAC algorithm, we ran rollouts with the trained agents across a grid of initial conditions, recording if the trajectory unltimately satisfies Eq.~\ref{T} or not. For brevity, we compare our method only with TD3 here, as this was the best performing model-free method we could find on this task. Figure~\ref{fig:td3_map} show the results for TD3. \textbf{When these initial conditions were run for SSAC, it satisfied Eq.~\ref{T} for \textit{every} initial condition}. 
 
 \begin{figure}[h]
 \centering
   \includegraphics[scale=.35]{fig/cdc2020/th_map_td3.png}
-  \caption{Balance map for TD3, X and Y indicate the initial position for the trial, a black dot indicates that the trial started from that point satisfies equation (\ref{T}), and red indicates the converse. \textbf{when these initial conditions were run for SSAC, it satisfied (11) for every initial condition}}
+  \caption{Balance map for TD3, X and Y indicate the initial position for the trial, a black dot indicates that the trial started from that point satisfies Equation (\ref{T}), and red indicates the converse. \textbf{When these initial conditions were run for SSAC, the balancing condition was met for every initial condition.}}
   \label{fig:td3_map}
 \end{figure}
 
@@ -278,9 +271,10 @@ We have also found that despite achieving relatively high rewards, the other alg
 
 \section{Conclusions}
 
-We have presented a novel control design methodology that allows engineers to leverage their domain knowledge, while also reaping many of the benefits from recent advances in deep reinforcement learning. In our case study we constructed a policy to swing-up and balance an acrobot while only needing to manually design a linear controller for the balancing task. We believe this method of control will be straightforward to apply to the double or triple cartpole problems, which to our knowledge no model free algorithm is reported as solving. We also think that this general methodology can be extended to more complex problems, such as legged locomotion. In that case the linear controller here could be a nominal walking controller obtained via trajectory optimization, and the learned controller could be a recovery controller to return to the basin of attraction of this nominal controller. 
+We have presented a novel control design methodology that allows engineers to leverage their domain knowledge while simultaneously reaping many of the benefits from recent advances in deep reinforcement learning. In our case study, we constructed a policy for swing-up and balance of an acrobot while only needing to manually design a linear controller for the balancing task (in terms of domain knowledge). We believe this method of control will be straightforward to apply to the double or triple cart-pole problems, for which, to our knowledge, no model-free algorithm is reported as solving. We also think that this general methodology can be extended to more complex problems, such as legged locomotion. In particularly, legged locomotion also involves multi-link systems that are underactuated and need to balance upright. In such a case, the baseline controller here could be a nominal walking controller using partial feedback linearization to track references obtained via trajectory optimization, and the learned controller could be a recovery controller to return to the basin of attraction of this nominal controller. 
 
 \section*{APPENDIX}
+\label{app:ch3}
 
 \subsection*{Hyperparameters}
 
@@ -309,7 +303,7 @@ Hyperparameter & Value \\
 \end{tabu}
 \end{center}
 
-\subsection*{Network Architecture}
-The policy, value, and Q networks are all made of four fully connected layers, with 32 hidden nodes and Relu activations. The gate network is composed of two hidden layers with 32 nodes each, also with Relu activations, the last output is fed through a sigmoid to keep the result between 0-1.
+%\subsection*{Network Architecture.}
+\noindent \textbf{Network Architechture.} The policy, value, and Q networks are each made of four fully connected layers, with 32 hidden nodes and ReLU activations. The gate network is composed of two hidden layers with 32 nodes each, also with ReLU activations, the last output is fed through a sigmoid to keep the result between 0-1.
 
 

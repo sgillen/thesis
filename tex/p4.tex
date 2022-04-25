@@ -15,7 +15,8 @@
 
 
 % Maybe should shrink the example section. 
-In recent years, researchers have leveraged Deep Reinforcement Learning (DRL) to solve a wide variety of continuous control problems. Examples include problems from the computer graphics community, in which DRL has been used for physics-based character animation~\cite{2018-TOG-deepMimic}, and a wide variety of complex robotic tasks. This paper focuses primarily on applications in robotics. Continuous control problems in the context of robotics include controlling a 47 degree-of-freedom (DOF) humanoid to navigate various obstacles~\cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand~\cite{openai_learning_2018}, training the quadrupedal ANYmal robot to recover from falls~\cite{lee_robust_2019}, and teaching the bipedal Cassie robot to navigate stairs blindly~\cite{siekmann2021blind}. These problems are all high dimensional, nonlinear, and underactuated, and they all involve complex contact sequences with the environments, which makes them very challenging for more traditional control design. Traditional model-based control techniques are still very effective---arguably, Boston Dynamics still represents the state-of-the-art for legged locomotion in robotics, for example. However, these approaches require hundreds of expert person hours to develop each new controller. DRL attempts to automate at least some aspects of this challenging controller development process. There are already examples of learned policies outperforming ones hand-designed by experts~\cite{hwangbo_learning_2019}, and with the ever-continued growth and availability of computational power, there is good reason to believe these learning methods will continue performing better and becoming easier to use.
+%In recent years, researchers have leveraged Deep Reinforcement Learning (DRL) to solve a wide variety of continuous control problems. Examples include problems from the computer graphics community, in which DRL has been used for physics-based character animation~\cite{2018-TOG-deepMimic}, and a wide variety of complex robotic tasks. This paper focuses primarily on applications in robotics. Continuous control problems in the context of robotics include controlling a 47 degree-of-freedom (DOF) humanoid to navigate various obstacles~\cite{heess_emergence_2017}, dexterously manipulating objects with a 24 DOF robotic hand~\cite{openai_learning_2018}, training the quadrupedal ANYmal robot to recover from falls~\cite{lee_robust_2019}, and teaching the bipedal Cassie robot to navigate stairs blindly~\cite{siekmann2021blind}.
+
 
 %\katie{citation here?} \sean{not sure what to cite since BD hasn't published since like big dog AFAIK} \katie{good point. I guess just a video, but we have a LOT of refs already, so maybe nevermind}. My vote is to ignore it unless maybe 
 
@@ -46,6 +47,9 @@ We show that our proposed method of fine tuning leads to modest increases in rew
 The rest of this paper is laid out as follows. First, we introduce the problem statement, the algorithms and environments used, and implementation details for the training. We then present results obtained from using this policy refinement approach across a collection of continuous-control RL environments. We also perform some analysis on how often fall events occur for a benchmark bipedal walker where the existing DRL baselines are particularly prone to failure. After this, we present results of using this method to train with additional, dimensionality based reward terms in order to show that we are able to extend our previous work to DNN policy classes. Finally, we demonstrate the approach on a Panda arm simulation environment, where our approach leads to considerably smoother policies that avoid unwanted jitter, without any environment specific or algorithm specific tuning or reward shaping.  
 
 \input{tex/p4_tables/table_1.tex}
+
+
+
 \input{tex/p4_tables/table_2.tex}
 
 

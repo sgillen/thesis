@@ -1,5 +1,8 @@
 
-We have already discussed some prior work has using mesh based techniques to analayze control policies for robotic systems \cite{Taleledeep}. Broadly, these techniques take a continuous system and approximate it with a discrete set of states. This allows us to model the system as a Markov chain, these systems are arguably easier to reason about, and it opens up a new box of tools we can bring to bear on the problem. For example we can use value iteration to switch between several controllers to improve the robustness \cite{Talelepush} or agility \cite{Byl2017} of the system. We can also perform eigen-analysis on the Markov chain's transition matrix, which provides us insights on the stability of the system \cite{Byl2009}. These techniques could both be used for policy refinement, and/or for verification and analysis of existing policies. 
+We have already discussed some prior work using mesh-based techniques to analyze control policies for robotic systems~\cite{Taleledeep}. Broadly, these techniques take a dynamic system with a continuous state space and approximate it with a discrete set of states. This set forms a non-uniform ``mesh'' within the full state space. The underlying dynamics might be deterministic or stochastic, yielding either deterministic or probabilistic mappings between the discrete states as an approximate model of the true system dynamics. 
+
+In other words, this technique allows us to model the dynamics system as a Markov chain, or, in a case where we have a discrete number of controllers or control actions possible, as a Markov Decision Process (MDP).
+In either case, this opens up a new box of tools we can bring to bear on the problem. For example, we can use value iteration to switch between several controllers to improve the robustness \cite{Talelepush} or agility \cite{Byl2017} of the system. We can also perform eigen-analysis on the Markov chain's transition matrix, which provides us insights on the stability of the system \cite{Byl2009}. These techniques could both be used for policy refinement, and/or for verification and analysis of existing policies. 
 
 Unlike the previous section, where we considered meshes of a single trajectory, this prior work that studies a systems reachable state space mesh. That is, the set of states that can be reached with a fixed controller, and a known set of disturbances. Although in the previous section, each trajectory was encouraged to have a smaller fractal dimension, this does not obviously extend to properties of the entire reachable state space for the system, which is what was used for the previous mesh based analysis of RL policies. 
 
@@ -108,7 +111,7 @@ where $id[n]$ is the index in our mesh data structure of the state at step n. Fo
 We wish to use our mesh based methods to quantify the stability of our system. To do this we estimate the average number of steps the agent will take before falling, subject to a given distribution of disturbances. To do this we will use the so called Mean First Passage Time (MFPT) which in this case will describe expected number of footsteps, rather than the number of timesteps to failure. First recall that our assumption is that our failure state is an absorbing state in our Markov chain approximation, and this implies that the largest eigenvalue of \textbf{T} will always be $\lambda_{1} = 1$. In \cite{Byl2009} Byl showed that when the second largest eigenvalue $\lambda_{2}$ is close to unity, the MFPT is approximately equal to:
 
 \begin{equation}
-    MFPT \approx \frac{1}{(1-\lambda_{2}).}
+    MFPT \approx \frac{1}{(1-\lambda_{2})}
     \label{eq:mfpt}
 \end{equation}
 

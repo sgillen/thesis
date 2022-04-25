@@ -201,7 +201,7 @@
 }
 
 
-  @book{howard:dp,
+@book{howard:dp,
   added-at = {2008-03-11T14:52:34.000+0100},
   address = {Cambridge, MA},
   author = {Howard, R. A.},
@@ -428,7 +428,7 @@
 	url          = {http://dx.doi.org/10.1126/scirobotics.abk2822}
 }
 @article{muzero2020,
-	title        = {Mastering Atari, Go, chess and shogi by planning with a learned model},
+	title        = {Mastering {A}tari, Go, chess and shogi by planning with a learned model},
 	author       = {Schrittwieser, Julian and Antonoglou, Ioannis and Hubert, Thomas and Simonyan, Karen and Sifre, Laurent and Schmitt, Simon and Guez, Arthur and Lockhart, Edward and Hassabis, Demis and Graepel, Thore and Lillicrap, Timothy and Silver, David},
 	year         = 2020,
 	month        = {Dec},
@@ -544,7 +544,7 @@
 }
 
 @misc{mnih2013playing,
-      title={Playing Atari with Deep Reinforcement Learning}, 
+      title={Playing {A}tari with Deep Reinforcement Learning}, 
       author={Volodymyr Mnih and Koray Kavukcuoglu and David Silver and Alex Graves and Ioannis Antonoglou and Daan Wierstra and Martin Riedmiller},
       year={2013},
       eprint={1312.5602},
@@ -918,6 +918,66 @@
 	abstract     = {For an underactuated biped on a constant-slope terrain, the hybrid zero dynamics (HZD) controller framework provides exponentially stable walking motions. In this paper, we quantify the stability of such a control system on rough terrain by estimating the expected number of steps before failure. In addition, we show how to switch between multiple HZD controllers (optionally using terrain look-ahead) to increase the stability dramatically, e.g., 10 thousand steps compared to 10. To do this robustly, we make use of the new meshing method proposed in this paper.},
 	file         = {:Users/sgillen/Textbooks/Papers/Saglam{\_}HZDmesh{\_}2015.pdf:pdf}
 }
+
+@article{carlucho2018adaptive,
+  title={Adaptive low-level control of autonomous underwater vehicles using deep reinforcement learning},
+  author={Carlucho, Ignacio and De Paula, Mariano and Wang, Sen and Petillot, Yvan and Acosta, Gerardo G},
+  journal={Robotics and Autonomous Systems},
+  volume={107},
+  pages={71--86},
+  year={2018},
+  publisher={Elsevier}
+}
+
+@article{akkaya2019solving,
+  title={Solving rubik's cube with a robot hand},
+  author={Akkaya, Ilge and Andrychowicz, Marcin and Chociej, Maciek and Litwin, Mateusz and McGrew, Bob and Petron, Arthur and Paino, Alex and Plappert, Matthias and Powell, Glenn and Ribas, Raphael and others},
+  journal={arXiv preprint arXiv:1910.07113},
+  year={2019}
+}
+@inproceedings{deisenroth2011pilco,
+  title={PILCO: A model-based and data-efficient approach to policy search},
+  author={Deisenroth, Marc and Rasmussen, Carl E},
+  booktitle={Proceedings of the 28th International Conference on machine learning (ICML-11)},
+  pages={465--472},
+  year={2011},
+  organization={Citeseer}
+}
+
+
+@article{hwangbo2017control,
+  title={Control of a quadrotor with reinforcement learning},
+  author={Hwangbo, Jemin and Sa, Inkyu and Siegwart, Roland and Hutter, Marco},
+  journal={IEEE Robotics and Automation Letters},
+  volume={2},
+  number={4},
+  pages={2096--2103},
+  year={2017},
+  publisher={IEEE}
+}
+
+
+
+@article{10.1016/j.robot.2012.11.009,
+author = {El-Fakdi, Andres and Carreras, Marc},
+title = {Two-Step Gradient-Based Reinforcement Learning for Underwater Robotics Behavior Learning},
+year = {2013},
+issue_date = {March, 2013},
+publisher = {North-Holland Publishing Co.},
+address = {NLD},
+volume = {61},
+number = {3},
+issn = {0921-8890},
+url = {https://doi.org/10.1016/j.robot.2012.11.009},
+doi = {10.1016/j.robot.2012.11.009},
+abstract = {This article proposes a field application of a Reinforcement Learning (RL) control system for solving the action selection problem of an autonomous robot in a cable tracking task. The Ictineu Autonomous Underwater Vehicle (AUV) learns to perform a visual based cable tracking task in a two step learning process. First, a policy is computed by means of simulation where a hydrodynamic model of the vehicle simulates the cable following task. The identification procedure follows a specially designed Least Squares (LS) technique. Once the simulated results are accurate enough, in a second step, the learnt-in-simulation policy is transferred to the vehicle where the learning procedure continues in a real environment, improving the initial policy. The Natural Actor-Critic (NAC) algorithm has been selected to solve the problem. This Actor-Critic (AC) algorithm aims to take advantage of Policy Gradient (PG) and Value Function (VF) techniques for fast convergence. The work presented contains extensive real experimentation. The main objective of this work is to demonstrate the feasibility of RL techniques to learn autonomous underwater tasks, the selection of a cable tracking task is motivated by an increasing industrial demand in a technology to survey and maintain underwater structures.},
+journal = {Robot. Auton. Syst.},
+month = {mar},
+pages = {271–282},
+numpages = {12},
+keywords = {Gradient descent algorithms, Model identification, Actor-Critic algorithms, Underwater robotics, Reinforcement learning}
+}
+
 @misc{BrendanRyan/Publicdomain2020,
 	title        = {{Fractal Dimension Example}},
 	author       = {{Brendan Ryan / Public domain}},
@@ -1005,11 +1065,13 @@
 	archiveprefix = {arXiv},
 	primaryclass = {cs.LG}
 }
+
 @misc{mnih2013playing,
-	title        = {Playing Atari with Deep Reinforcement Learning},
+	title        = {Playing {A}tari with Deep Reinforcement Learning},
 	author       = {Volodymyr Mnih and Koray Kavukcuoglu and David Silver and Alex Graves and Ioannis Antonoglou and Daan Wierstra and Martin Riedmiller},
 	year         = 2013,
 	eprint       = {1312.5602},
+	
 	archiveprefix = {arXiv},
 	primaryclass = {cs.LG}
 }
@@ -1052,6 +1114,52 @@
   number={2},
   pages={2047-2054},
   doi={10.1109/LRA.2022.3143227}}
+
+@INPROCEEDINGS{gillen2021fractal,
+  author={Gillen, Sean and Byl, Katie},
+  booktitle={2021 IEEE International Conference on Robotics and Automation (ICRA)}, 
+  title={Mesh Based Analysis of Low Fractal Dimension Reinforcement Learning Policies}, 
+  year={2021},
+  volume={},
+  number={},
+  pages={3546-3552},
+  doi={10.1109/ICRA48506.2021.9561874}}
+
+
+@misc{gillen2022leveraging,
+    title={Leveraging Reward Gradients For Reinforcement Learning in Differentiable Physics Simulations},
+    author={Sean Gillen and Katie Byl},
+    year={2022},
+    eprint={2203.02857},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG}
+}
+
+@article{gillen2021direct,
+  title={Direct Random Search for Fine Tuning of Deep Reinforcement Learning Policies},
+  author={Gillen, Sean and Ozmen, Asutay and Byl, Katie},
+  journal={arXiv preprint arXiv:2109.05604},
+  year={2021}
+}
+
+@inproceedings{siekmann2021sim,
+  title={Sim-to-real learning of all common bipedal gaits via periodic reward composition},
+  author={Siekmann, Jonah and Godse, Yesh and Fern, Alan and Hurst, Jonathan},
+  booktitle={2021 IEEE International Conference on Robotics and Automation (ICRA)},
+  pages={7309--7315},
+  year={2021},
+  organization={IEEE}
+}
+
+
+@inproceedings{castillo2021robust,
+  title={Robust feedback motion policy design using reinforcement learning on a 3D digit bipedal robot},
+  author={Castillo, Guillermo A and Weng, Bowen and Zhang, Wei and Hereid, Ayonga},
+  booktitle={2021 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  pages={5136--5143},
+  year={2021},
+  organization={IEEE}
+}
 
 
 @inproceedings{Rajeswaran-NIPS-17,
@@ -1102,6 +1210,55 @@
 	year         = {2016--2020},
 	howpublished = {\url{http://pybullet.org}}
 }
+
+@InProceedings{pmlr-v100-xie20a,
+  title = 	 {Learning Locomotion Skills for Cassie: Iterative Design and Sim-to-Real},
+  author =       {Xie, Zhaoming and Clary, Patrick and Dao, Jeremy and Morais, Pedro and Hurst, Jonanthan and van de Panne, Michiel},
+  booktitle = 	 {Proceedings of the Conference on Robot Learning},
+  pages = 	 {317--329},
+  year = 	 {2020},
+  editor = 	 {Kaelbling, Leslie Pack and Kragic, Danica and Sugiura, Komei},
+  volume = 	 {100},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {30 Oct--01 Nov},
+  publisher =    {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/v100/xie20a/xie20a.pdf},
+  url = 	 {https://proceedings.mlr.press/v100/xie20a.html},
+  abstract = 	 {Deep reinforcement learning (DRL) is a promising approach for developing legged locomotion skills. However, current work commonly describes DRL as being a one-shot process, where the state, action and reward are assumed to be well defined and are directly used by an RL algorithm to obtain policies. In this paper, we describe and document an iterative design approach, which reflects the multiple design iterations of the reward that are often (if not always) needed in practice. Throughout the process, transfer learning is achieved via Deterministic Action Stochastic State (DASS) tuples, representing the deterministic policy actions associated with states visited by the stochastic policy. We demonstrate the transfer of policies learned in simulation to the physical robot without dynamics randomization. We also identify several key components that are critical for sim-to-real transfer in our setting.}
+}
+
+@article{peng2018deepmimic,
+  title={Deepmimic: Example-guided deep reinforcement learning of physics-based character skills},
+  author={Peng, Xue Bin and Abbeel, Pieter and Levine, Sergey and van de Panne, Michiel},
+  journal={ACM Transactions on Graphics (TOG)},
+  volume={37},
+  number={4},
+  pages={1--14},
+  year={2018},
+  publisher={ACM New York, NY, USA}
+}
+
+
+@article{peng2016terrain,
+  title={Terrain-adaptive locomotion skills using deep reinforcement learning},
+  author={Peng, Xue Bin and Berseth, Glen and Van de Panne, Michiel},
+  journal={ACM Transactions on Graphics (TOG)},
+  volume={35},
+  number={4},
+  pages={1--12},
+  year={2016},
+  publisher={ACM New York, NY, USA}
+}
+
+
+@article{tan2018sim,
+  title={Sim-to-real: Learning agile locomotion for quadruped robots},
+  author={Tan, Jie and Zhang, Tingnan and Coumans, Erwin and Iscen, Atil and Bai, Yunfei and Hafner, Danijar and Bohez, Steven and Vanhoucke, Vincent},
+  journal={arXiv preprint arXiv:1804.10332},
+  year={2018}
+}
+
+
 @article{Kaygisiz2001,
 	title        = {{Smoothing stability roughness of a robot arm under dynamic load using reinforcement learning}},
 	author       = {Kaygisiz, Burak H. and Erkmen, Aydan M. and Erkmen, Ismet},
@@ -1217,6 +1374,19 @@
 	url          = {https://www.frontiersin.org/article/10.3389/fnbot.2019.00006},
 	abstract     = {An important field in robotics is the optimization of controllers. Currently, robots are often treated as a black box in this optimization process, which is the reason why derivative-free optimization methods such as evolutionary algorithms or reinforcement learning are omnipresent. When gradient-based methods are used, models are kept small or rely on finite difference approximations for the Jacobian. This method quickly grows expensive with increasing numbers of parameters, such as found in deep learning. We propose the implementation of a modern physics engine, which can differentiate control parameters. This engine is implemented for both CPU and GPU. Firstly, this paper shows how such an engine speeds up the optimization process, even for small problems. Furthermore, it explains why this is an alternative approach to deep Q-learning, for using deep learning in robotics. Finally, we argue that this is a big step for deep learning in robotics, as it opens up new possibilities to optimize robots, both in hardware and software.}
 }
+
+@article{raibert2008bigdog,
+  title={Bigdog, the rough-terrain quadruped robot},
+  author={Raibert, Marc and Blankespoor, Kevin and Nelson, Gabriel and Playter, Rob},
+  journal={IFAC Proceedings Volumes},
+  volume={41},
+  number={2},
+  pages={10822--10825},
+  year={2008},
+  publisher={Elsevier}
+}
+
+
 @inbook{doi:10.2514/6.2018-1452,
 	title        = {Parallel Monotonic Basin Hopping for Low Thrust Trajectory Optimization},
 	author       = {Steven L. McCarty and Laura M. Burke and Melissa McGuire},

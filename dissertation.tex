@@ -17,6 +17,8 @@
 \usepackage{amssymb}
 \usepackage{bm} 
 \usepackage{color}
+\usepackage{adjustbox}
+\usepackage{pdflscape}
 
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
@@ -97,7 +99,7 @@
 	\maketitle
 	\approvalpage
 	\copyrightpage
-	\input{tex/dedicate}%comment out if you don't want a dedication
+	%\input{tex/dedicate}%comment out if you don't want a dedication
 	\input{tex/acknowledgements}
 	%\input{tex/vitae}
     \includepdf[pages=-]{sgillen_CV.pdf}
@@ -142,6 +144,7 @@
 
 %=== Chapter  ============================================
 \chapter{Background}
+\label{chap:background}
 %---  Section -------------------------
 
 \input{tex/background}
@@ -149,41 +152,54 @@
 
 %=== Chapter ==============================================
 \chapter{Switching}
+\label{chap:p1}
 
 \input{tex/p1.tex}
 
 %=== Chapter   ============================================
-\chapter{Reward Post Processing and Mesh Dimensions}
+\chapter{Reward Post-Processing and Mesh Dimensions}
+\label{chap:p2}
+
 
 \input{tex/p2.tex}
 
 \chapter{Reachable State Space Mesh for the Hopper}
+\label{chap:p3}
+
 
 \input{tex/p3.tex}
 
 \chapter{Fine Tuning of Reinforcement Learning Policies}
+\label{chap:p4}
+
 
 \input{tex/p4.tex}
 
 \chapter{Reinforcement Learning in Differentiable Simulators}
+\label{chap:p5}
+
 
 \input{tex/p5.tex}
 
 \chapter{Conclusions}
+\label{chap:conclusion}
+
+
+\input{tex/conclusion.tex}
 
 
 
 %=== Appendix ============================================
-\appendix
+% \appendix
 
-\dsp
+% \dsp
 
-\chapter{Appendix Title }{\label{appendix:a}}
-\begin{section}{Section Title}
+% \chapter{Appendix Title }{\label{appendix:a}}
+% \begin{section}{Section Title}
 
-Appendicitis
+% Appendicitis
 
-\end{section}
+% \end{section}
 \end{mainmatter}
 
 %----- Bibliography ----------------
